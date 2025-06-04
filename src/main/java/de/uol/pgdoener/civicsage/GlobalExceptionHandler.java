@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage;
 
+import de.uol.pgdoener.civicsage.business.infrastructure.index.exception.ReadFileException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,6 +20,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ReadFileException.class)
+    public ResponseEntity<Object> handleReadFileException(ReadFileException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("ReadFileException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
