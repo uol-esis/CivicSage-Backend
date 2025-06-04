@@ -1,0 +1,24 @@
+name: Test Project
+
+on:
+  push:
+    paths:
+      - src/**
+      - pom.xml
+      - .github/workflows/verify.yaml
+  workflow_call:
+
+jobs:
+  test:
+    name: Test with Maven
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4.7.1
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Test with Maven
+        run: ./mvnw --batch-mode --update-snapshots verify
