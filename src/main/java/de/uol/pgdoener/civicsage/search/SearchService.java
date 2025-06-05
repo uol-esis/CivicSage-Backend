@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.service;
+package de.uol.pgdoener.civicsage.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;

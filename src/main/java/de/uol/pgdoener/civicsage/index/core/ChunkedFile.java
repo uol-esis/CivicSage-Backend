@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.infrastructure.index.core;
+package de.uol.pgdoener.civicsage.index.core;
 
 import lombok.NonNull;
 
@@ -6,6 +6,6 @@ import java.util.List;
 
 public record ChunkedFile(
         @NonNull String name,
-        @NonNull List<Chunk> chunks
+        @NonNull List<? extends Chunk> chunks
 ) {
 }

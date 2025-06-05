@@ -1,9 +1,8 @@
-package de.uol.pgdoener.civicsage.business.infrastructure.index;
+package de.uol.pgdoener.civicsage.index.chunk;
 
-import de.uol.pgdoener.civicsage.business.infrastructure.index.chunk.ChunkerFactory;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.chunk.chunkers.Chunker;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.core.ChunkedFile;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.chunk.chunkers.Chunker;
+import de.uol.pgdoener.civicsage.index.core.ChunkedFile;
+import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

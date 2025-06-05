@@ -1,6 +1,6 @@
-package de.uol.pgdoener.civicsage.business.infrastructure.index.chunk.chunkers;
+package de.uol.pgdoener.civicsage.index.chunk.chunkers;
 
-import de.uol.pgdoener.civicsage.business.infrastructure.index.core.ChunkedFile;
+import de.uol.pgdoener.civicsage.index.core.ChunkedFile;
 import lombok.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 

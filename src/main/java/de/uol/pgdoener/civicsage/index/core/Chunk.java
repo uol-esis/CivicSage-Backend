@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.infrastructure.index.core;
+package de.uol.pgdoener.civicsage.index.core;
 
 public sealed interface Chunk permits
         PDFChunk,

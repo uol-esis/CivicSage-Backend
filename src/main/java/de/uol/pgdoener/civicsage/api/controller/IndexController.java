@@ -2,7 +2,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
-import de.uol.pgdoener.civicsage.business.service.IndexService;
+import de.uol.pgdoener.civicsage.index.IndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

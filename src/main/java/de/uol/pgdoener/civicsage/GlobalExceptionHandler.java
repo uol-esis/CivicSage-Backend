@@ -1,6 +1,6 @@
 package de.uol.pgdoener.civicsage;
 
-import de.uol.pgdoener.civicsage.business.infrastructure.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;

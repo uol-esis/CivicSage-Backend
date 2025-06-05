@@ -1,8 +1,8 @@
-package de.uol.pgdoener.civicsage.business.infrastructure.index.chunk;
+package de.uol.pgdoener.civicsage.index.chunk;
 
-import de.uol.pgdoener.civicsage.business.infrastructure.index.chunk.chunkers.Chunker;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.chunk.chunkers.PlainTextChunker;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.chunk.chunkers.Chunker;
+import de.uol.pgdoener.civicsage.index.chunk.chunkers.PlainTextChunker;
+import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;

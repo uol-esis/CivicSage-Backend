@@ -1,9 +1,9 @@
-package de.uol.pgdoener.civicsage.business.service;
+package de.uol.pgdoener.civicsage.index;
 
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.ChunkFileService;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.SemanticChunkService;
-import de.uol.pgdoener.civicsage.business.infrastructure.index.core.ChunkedFile;
+import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
+import de.uol.pgdoener.civicsage.index.chunk.ChunkFileService;
+import de.uol.pgdoener.civicsage.index.core.ChunkedFile;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +17,15 @@ public class IndexService {
 
     private final ChunkFileService chunkFileService;
     private final SemanticChunkService semanticChunkService;
+    private final EmbeddingService embeddingService;
 
     public void indexFile(@NonNull MultipartFile file) {
         ChunkedFile chunkedFile = chunkFileService.process(file);
         chunkedFile = semanticChunkService.process(chunkedFile);
-        // TODO: embed chunks and save to vector database
+
+        embeddingService.embedChunks(chunkedFile);
+
+        // TODO: save to vector database
     }
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {

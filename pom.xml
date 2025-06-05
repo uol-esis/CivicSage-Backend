@@ -8,7 +8,7 @@
         <version>3.5.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>de.uol.pgdoener.civicsage</groupId>
+    <groupId>de.uol.pgdoener</groupId>
     <artifactId>CivicSage</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>CivicSage</name>
