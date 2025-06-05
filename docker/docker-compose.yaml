@@ -1,0 +1,28 @@
+# Example compose file for local development and testing
+# DO NOT USE IN PRODUCTION!
+# DO NOT USE DEFAULT CREDENTIALS IN PRODUCTION!
+name: CivicSage Stack
+services:
+  civicsage:
+    build: ..
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/example
+      SPRING_DATASOURCE_USERNAME: example
+      SPRING_DATASOURCE_PASSWORD: example
+      SECURITY_ALLOWED-ORIGINS: localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=example
+      - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=example
+      - PGUSER=example
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
