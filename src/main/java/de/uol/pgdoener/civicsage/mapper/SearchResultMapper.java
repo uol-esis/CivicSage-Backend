@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.mapper;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Component;
@@ -15,13 +16,13 @@ import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 @Component
 public class SearchResultMapper {
 
-    public List<SearchResultDto> toDto(List<Document> documents) {
+    public List<SearchResultDto> toDto(@NonNull List<Document> documents) {
         return documents.stream()
                 .map(this::toDto)
                 .toList();
     }
 
-    public SearchResultDto toDto(Document document) {
+    public SearchResultDto toDto(@NonNull Document document) {
         SearchResultDto searchResultDto = new SearchResultDto();
         searchResultDto.setScore(document.getScore());
         searchResultDto.setText(document.getText());
