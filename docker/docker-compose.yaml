@@ -12,6 +12,7 @@ services:
       SPRING_DATASOURCE_USERNAME: example
       SPRING_DATASOURCE_PASSWORD: example
       SECURITY_ALLOWED-ORIGINS: localhost:8080
+      LOGGING_LEVEL_DE_UOL_PGDOENER_CIVICSAGE: DEBUG
     depends_on:
       db:
         condition: service_healthy
