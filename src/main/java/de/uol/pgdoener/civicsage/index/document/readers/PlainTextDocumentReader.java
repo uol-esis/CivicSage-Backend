@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.LINE_NUMBER;
+
 @RequiredArgsConstructor
 public class PlainTextDocumentReader implements DocumentReader {
 
@@ -50,8 +53,8 @@ public class PlainTextDocumentReader implements DocumentReader {
 
     private Document createDocument(String content, int lineNumber) {
         Map<String, Object> metadata = new HashMap<>();
-        metadata.put("file_name", file.getOriginalFilename());
-        metadata.put("line_number", lineNumber);
+        metadata.put(FILE_NAME, file.getOriginalFilename());
+        metadata.put(LINE_NUMBER, lineNumber);
 
         return new Document(content, metadata);
     }
