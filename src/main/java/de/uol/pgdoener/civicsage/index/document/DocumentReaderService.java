@@ -1,11 +1,11 @@
 package de.uol.pgdoener.civicsage.index.document;
 
-import de.uol.pgdoener.civicsage.index.document.readers.WebsiteDocumentReader;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
+import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,7 +38,7 @@ public class DocumentReaderService {
             url = "https://" + url;
         }
 
-        DocumentReader documentReader = new WebsiteDocumentReader(url);
+        DocumentReader documentReader = new JsoupDocumentReader(url);
         return documentReader.read();
     }
 
