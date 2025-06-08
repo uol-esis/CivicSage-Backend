@@ -31,7 +31,7 @@ public class IndexService {
     }
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
-        String url = indexWebsiteRequestDto.getUrl().get();
+        String url = indexWebsiteRequestDto.getUrl();
 
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);

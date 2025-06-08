@@ -29,8 +29,12 @@ public class DocumentReaderService {
 
     public List<Document> readURL(String url) {
         // make sure url starts with http(s)://
-        //noinspection HttpUrlsUsage
-        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+        if (url.matches("[a-z]+://.+")) {
+            //noinspection HttpUrlsUsage
+            if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+                throw new ReadFileException("Invalid protocol used in URL: " + url);
+            }
+        } else {
             url = "https://" + url;
         }
 
