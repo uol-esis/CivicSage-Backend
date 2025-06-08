@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.index.document.readers;
 
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
@@ -13,6 +14,7 @@ import java.util.Map;
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.TITLE;
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 
+@Slf4j
 @RequiredArgsConstructor
 public class WebsiteDocumentReader implements DocumentReader {
 
@@ -34,6 +36,7 @@ public class WebsiteDocumentReader implements DocumentReader {
                     ))
                     .build());
         } catch (IOException e) {
+            log.info("Error reading url {}", url, e);
             throw new ReadUrlException("Could not read url", e);
         }
     }

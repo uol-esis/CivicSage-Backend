@@ -3,7 +3,6 @@ package de.uol.pgdoener.civicsage.index;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
-import de.uol.pgdoener.civicsage.index.document.readers.WebsiteDocumentReader;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,10 @@ public class IndexService {
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl().get();
 
-        List<Document> documents = new WebsiteDocumentReader(url).read();
+        List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
+        documents = semanticSplitterService.process(documents);
+        log.debug("Website split into {} semantic chunks", documents.size());
 
         embeddingService.save(documents);
     }

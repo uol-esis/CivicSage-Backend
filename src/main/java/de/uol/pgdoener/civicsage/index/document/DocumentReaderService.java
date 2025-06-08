@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.index.document;
 
+import de.uol.pgdoener.civicsage.index.document.readers.WebsiteDocumentReader;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,17 @@ public class DocumentReaderService {
 
         DocumentReader documentReader = documentReaderFactory.create(file, fileEnding);
         return documentReader.get();
+    }
+
+    public List<Document> readURL(String url) {
+        // make sure url starts with http(s)://
+        //noinspection HttpUrlsUsage
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+            url = "https://" + url;
+        }
+
+        DocumentReader documentReader = new WebsiteDocumentReader(url);
+        return documentReader.read();
     }
 
 }
