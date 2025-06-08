@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.index;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.index.document.readers.WebsiteDocumentReader;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,12 @@ public class IndexService {
     }
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
-        // Logic to index the website content
-        log.error("Indexing URL: {}", indexWebsiteRequestDto.getUrl());
+        String url = indexWebsiteRequestDto.getUrl().get();
+
+        List<Document> documents = new WebsiteDocumentReader(url).read();
+        log.debug("Read {} documents from url: {}", documents.size(), url);
+
+        embeddingService.save(documents);
     }
 
 }
