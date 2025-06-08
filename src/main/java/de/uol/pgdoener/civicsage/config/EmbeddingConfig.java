@@ -19,6 +19,7 @@ public class EmbeddingConfig {
     @Value("${civicsage.embedding.model.context-length}")
     private int embeddingModelContextLength;
 
+    // https://docs.spring.io/spring-ai/reference/api/vectordbs.html#_default_implementation
     @Bean
     public BatchingStrategy customTokenCountBatchingStrategy() {
         log.info("Initializing TokenCountBatchingStrategy with {} tokens", embeddingModelContextLength);

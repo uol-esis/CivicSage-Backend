@@ -1,4 +1,5 @@
 spring.datasource.username=example
 spring.datasource.password=example
 spring.datasource.url=jdbc:postgresql://localhost:5432/example
+# default model: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
 civicsage.embedding.model.context-length=256
