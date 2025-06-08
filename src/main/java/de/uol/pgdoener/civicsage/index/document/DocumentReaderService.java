@@ -23,7 +23,7 @@ public class DocumentReaderService {
         final String fileEnding = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
 
         DocumentReader documentReader = documentReaderFactory.create(file, fileEnding);
-        return documentReader.get();
+        return documentReader.read();
     }
 
 }
