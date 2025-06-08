@@ -1,3 +1,4 @@
 spring.datasource.username=example
 spring.datasource.password=example
 spring.datasource.url=jdbc:postgresql://localhost:5432/example
+civicsage.embedding.model.context-length=256

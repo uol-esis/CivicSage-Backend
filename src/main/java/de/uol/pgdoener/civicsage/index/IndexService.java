@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,12 +21,13 @@ public class IndexService {
     private final DocumentReaderService documentReaderService;
     private final SemanticSplitterService semanticSplitterService;
     private final EmbeddingService embeddingService;
+    private final TextSplitter textSplitter;
 
     public void indexFile(@NonNull MultipartFile file) {
         List<Document> documents = documentReaderService.read(file);
         log.debug("Read {} documents from file: {}", documents.size(), file.getOriginalFilename());
-        documents = semanticSplitterService.process(documents);
-        log.debug("Split into {} semantic chunks", documents.size());
+
+        documents = postProcessDocuments(documents);
 
         embeddingService.save(documents);
     }
@@ -35,10 +37,22 @@ public class IndexService {
 
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
+
+        documents = postProcessDocuments(documents);
+
+        embeddingService.save(documents);
+    }
+
+    private List<Document> postProcessDocuments(List<Document> documents) {
         documents = semanticSplitterService.process(documents);
         log.debug("Website split into {} semantic chunks", documents.size());
 
-        embeddingService.save(documents);
+        documents = documents.stream()
+                .flatMap(d -> textSplitter.split(d).stream())
+                .toList();
+        log.debug("Split into {} chunks to fit context window", documents.size());
+
+        return documents;
     }
 
 }
