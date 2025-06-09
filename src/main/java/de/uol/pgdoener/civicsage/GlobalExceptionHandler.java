@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleReadFileException(ReadFileException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
         log.debug("ReadFileException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(ReadUrlException.class)
+    public ResponseEntity<Object> handleReadUrlException(ReadUrlException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("ReadUrlException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
     }
 
