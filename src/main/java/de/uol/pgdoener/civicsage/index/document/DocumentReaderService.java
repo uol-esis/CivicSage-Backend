@@ -7,14 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
-import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
-import org.springframework.ai.reader.jsoup.config.JsoupDocumentReaderConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 
 @Slf4j
 @Service
@@ -44,10 +40,7 @@ public class DocumentReaderService {
             url = "https://" + url;
         }
 
-        JsoupDocumentReaderConfig config = JsoupDocumentReaderConfig.builder()
-                .additionalMetadata(URL, url)
-                .build();
-        DocumentReader documentReader = new JsoupDocumentReader(url, config);
+        DocumentReader documentReader = documentReaderFactory.createForURL(url);
         return documentReader.read();
     }
 

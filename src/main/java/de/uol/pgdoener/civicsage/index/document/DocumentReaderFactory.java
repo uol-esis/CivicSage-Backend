@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.TextReader;
+import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
+import org.springframework.ai.reader.jsoup.config.JsoupDocumentReaderConfig;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.pdf.ParagraphPdfDocumentReader;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 
 @Slf4j
 @Component
@@ -56,6 +59,13 @@ public class DocumentReaderFactory {
             }
             default -> throw new ReadFileException("Unsupported file type: " + fileEnding);
         };
+    }
+
+    public DocumentReader createForURL(@NonNull String url) {
+        JsoupDocumentReaderConfig config = JsoupDocumentReaderConfig.builder()
+                .additionalMetadata(URL, url)
+                .build();
+        return new JsoupDocumentReader(url, config);
     }
 
 }
