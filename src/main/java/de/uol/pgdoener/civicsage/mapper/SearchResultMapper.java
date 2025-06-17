@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
@@ -33,7 +34,7 @@ public class SearchResultMapper {
 
         if (fileName instanceof String file) {
             searchResultDto.fileName(file);
-            searchResultDto.fileRef(toFileRef(metadata));
+            searchResultDto.fileId(toFileRef(metadata));
         } else if (url instanceof String u) {
             searchResultDto.url(u);
         } else {
@@ -43,8 +44,8 @@ public class SearchResultMapper {
         return searchResultDto;
     }
 
-    private String toFileRef(Map<String, Object> metadata) {
-        return "TODO";
+    private UUID toFileRef(Map<String, Object> metadata) {
+        return UUID.randomUUID();
     }
 
 }

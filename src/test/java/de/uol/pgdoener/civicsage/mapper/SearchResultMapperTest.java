@@ -31,8 +31,7 @@ class SearchResultMapperTest {
         assertEquals("content", searchResultDto.getText());
         assertTrue(searchResultDto.getFileName().isPresent());
         assertEquals("file.pdf", searchResultDto.getFileName().get());
-        assertTrue(searchResultDto.getFileRef().isPresent());
-        assertEquals("TODO", searchResultDto.getFileRef().get());
+        assertTrue(searchResultDto.getFileId().isPresent());
         assertTrue(searchResultDto.getUrl().isEmpty());
         assertEquals(0.42, searchResultDto.getScore());
     }
@@ -51,7 +50,7 @@ class SearchResultMapperTest {
 
         assertEquals("content", searchResultDto.getText());
         assertTrue(searchResultDto.getFileName().isEmpty());
-        assertTrue(searchResultDto.getFileRef().isEmpty());
+        assertTrue(searchResultDto.getFileId().isEmpty());
         assertTrue(searchResultDto.getUrl().isPresent());
         assertEquals("example.com", searchResultDto.getUrl().get());
         assertEquals(0.1, searchResultDto.getScore());
@@ -83,14 +82,13 @@ class SearchResultMapperTest {
         assertEquals("content1", searchResultDtos.getFirst().getText());
         assertTrue(searchResultDtos.getFirst().getFileName().isPresent());
         assertEquals("file.pdf", searchResultDtos.getFirst().getFileName().get());
-        assertTrue(searchResultDtos.getFirst().getFileRef().isPresent());
-        assertEquals("TODO", searchResultDtos.getFirst().getFileRef().get());
+        assertTrue(searchResultDtos.getFirst().getFileId().isPresent());
         assertTrue(searchResultDtos.getFirst().getUrl().isEmpty());
         assertEquals(0.42, searchResultDtos.getFirst().getScore());
 
         assertEquals("content2", searchResultDtos.getLast().getText());
         assertTrue(searchResultDtos.getLast().getFileName().isEmpty());
-        assertTrue(searchResultDtos.getLast().getFileRef().isEmpty());
+        assertTrue(searchResultDtos.getLast().getFileId().isEmpty());
         assertTrue(searchResultDtos.getLast().getUrl().isPresent());
         assertEquals("example.com", searchResultDtos.getLast().getUrl().get());
         assertEquals(0.1, searchResultDtos.getLast().getScore());

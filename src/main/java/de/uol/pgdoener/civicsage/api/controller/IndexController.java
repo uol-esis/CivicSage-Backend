@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -17,10 +20,13 @@ public class IndexController implements IndexApiDelegate {
     private final IndexService indexService;
 
     @Override
-    public ResponseEntity<Void> indexFiles(MultipartFile file) {
-        log.info("Indexing file {}", file.getOriginalFilename());
-        indexService.indexFile(file);
-        log.info("File {} indexed successfully", file.getOriginalFilename());
+    public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
+        log.info("Received {} files to index", files.size());
+        for (MultipartFile file : files) {
+            log.info("Indexing file {}", file.getOriginalFilename());
+            indexService.indexFile(file);
+            log.info("File {} indexed successfully", file.getOriginalFilename());
+        }
         return ResponseEntity.ok().build();
     }
 
