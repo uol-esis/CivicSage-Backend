@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NotEnoughResultsAvailableException.class)
+    public ResponseEntity<Object> handleNotEnoughResultsAvailableException(NotEnoughResultsAvailableException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("NotEnoughResultsAvailableException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(ReadFileException.class)
     public ResponseEntity<Object> handleReadFileException(ReadFileException ex) {

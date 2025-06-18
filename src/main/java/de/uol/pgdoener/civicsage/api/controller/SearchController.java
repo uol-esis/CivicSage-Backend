@@ -23,7 +23,7 @@ public class SearchController implements SearchApiDelegate {
     public ResponseEntity<List<SearchResultDto>> searchFiles(SearchQueryDto searchQueryDto, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Received search query: {}", searchQueryDto.getQuery());
         List<SearchResultDto> results = searchService.search(searchQueryDto, pageNumber, pageSize);
-        log.info("Found {} results for query: {}", results.size(), searchQueryDto.getQuery());
+        log.info("Returning {} results", results.size());
         return ResponseEntity.ok(results);
     }
 

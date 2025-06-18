@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.search;
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
 import de.uol.pgdoener.civicsage.mapper.SearchResultMapper;
+import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -28,9 +29,11 @@ public class SearchService {
         log.info("Searching for documents with query {}", query);
         int pNumber = pageNumber.orElse(DEFAULT_PAGE_NUMBER);
         int pSize = pageSize.orElse(DEFAULT_PAGE_SIZE);
+        int resultsToFetch = (pNumber + 1) * pSize;
+        log.debug("topK = {}", resultsToFetch);
 
         // use SearchRequest instead of String to allow for more complex queries
-        SearchRequest searchRequest = buildSearchRequest(query, pNumber, pSize);
+        SearchRequest searchRequest = buildSearchRequest(query, resultsToFetch);
         List<Document> documents = vectorStore.similaritySearch(searchRequest);
 
         if (documents == null || documents.isEmpty()) {
@@ -44,9 +47,7 @@ public class SearchService {
         return searchResultMapper.toDto(documents);
     }
 
-    private SearchRequest buildSearchRequest(SearchQueryDto query, int pageNumber, int pageSize) {
-        int resultsToFetch = (pageNumber + 1) * pageSize;
-        log.debug("topK = {}", resultsToFetch);
+    private SearchRequest buildSearchRequest(SearchQueryDto query, int resultsToFetch) {
         return SearchRequest.builder()
                 .query(query.getQuery())
                 .topK(resultsToFetch)
@@ -55,6 +56,11 @@ public class SearchService {
 
     private List<Document> applyPagination(List<Document> documents, int pageNumber, int pageSize) {
         int startIndex = ((pageNumber + 1) * pageSize) - pageSize;
+        log.debug("startIndex = {}", startIndex);
+
+        if (startIndex > documents.size())
+            throw new NotEnoughResultsAvailableException("Only " + documents.size() + " results were found!");
+
         return documents.subList(startIndex, documents.size());
     }
 
