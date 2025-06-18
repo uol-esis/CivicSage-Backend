@@ -58,7 +58,7 @@ public class SearchService {
         int startIndex = ((pageNumber + 1) * pageSize) - pageSize;
         log.debug("startIndex = {}", startIndex);
 
-        if (startIndex > documents.size())
+        if (startIndex >= documents.size())
             throw new NotEnoughResultsAvailableException("Only " + documents.size() + " results were found!");
 
         return documents.subList(startIndex, documents.size());
