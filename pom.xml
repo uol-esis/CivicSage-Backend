@@ -146,7 +146,7 @@
                         </goals>
                         <configuration>
                             <inputSpec>
-                                https://raw.githubusercontent.com/uol-esis/CivicSage-OpenAPI/399b7077a1b1f0c466e2fe11eb0bba9ed5e68666/openapi.yaml
+                                https://raw.githubusercontent.com/uol-esis/CivicSage-OpenAPI/v0.1.0/openapi.yaml
                             </inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>de.uol.pgdoener.civicsage.api</apiPackage>
