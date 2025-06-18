@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.*;
 
 @Slf4j
 @Component
@@ -35,13 +34,27 @@ public class SearchResultMapper {
         if (fileName instanceof String file) {
             searchResultDto.fileName(file);
             searchResultDto.fileId(toFileRef(metadata));
+            searchResultDto.title(constructTitleForFile(file));
         } else if (url instanceof String u) {
             searchResultDto.url(u);
+            if (metadata.get(TITLE) instanceof String t)
+                searchResultDto.title(t);
         } else {
             log.error("Document is neither a file nor a url: {}", document);
         }
 
         return searchResultDto;
+    }
+
+    private String constructTitleForFile(String fileName) {
+        String title = fileName;
+
+        int indexOfFileEnding = title.lastIndexOf(".");
+        if (indexOfFileEnding != -1) {
+            title = title.substring(0, indexOfFileEnding);
+        }
+
+        return title.replace('_', ' ');
     }
 
     private UUID toFileRef(Map<String, Object> metadata) {
