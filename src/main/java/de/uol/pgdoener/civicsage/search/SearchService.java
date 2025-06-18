@@ -2,11 +2,13 @@ package de.uol.pgdoener.civicsage.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
+import de.uol.pgdoener.civicsage.config.CachingConfig;
 import de.uol.pgdoener.civicsage.mapper.SearchResultMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +21,9 @@ public class SearchService {
     private final VectorStore vectorStore;
     private final SearchResultMapper searchResultMapper;
 
+    @Cacheable(
+            cacheNames = CachingConfig.SEARCH_CACHE_NAME
+    )
     public List<SearchResultDto> search(SearchQueryDto query) {
         log.info("Searching for documents with query {}", query);
 
