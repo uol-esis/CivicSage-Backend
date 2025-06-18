@@ -34,7 +34,10 @@ public class SearchResultMapper {
         if (fileName instanceof String file) {
             searchResultDto.fileName(file);
             searchResultDto.fileId(toFileRef(metadata));
-            searchResultDto.title(constructTitleForFile(file));
+            if (metadata.get(TITLE) instanceof String t)
+                searchResultDto.title(t);
+            else
+                searchResultDto.title(constructTitleForFile(file));
         } else if (url instanceof String u) {
             searchResultDto.url(u);
             if (metadata.get(TITLE) instanceof String t)
