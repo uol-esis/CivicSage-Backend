@@ -3,6 +3,8 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.IndexApi;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
+import de.uol.pgdoener.civicsage.source.FileSource;
+import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class IndexController implements IndexApi {
 
     private final IndexService indexService;
     private final StorageService storageService;
+    private final SourceService sourceService;
 
     @Override
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
@@ -35,7 +38,7 @@ public class IndexController implements IndexApi {
             } catch (IOException e) {
                 log.error("Error storing file {}", file.getOriginalFilename(), e);
             }
-            // TODO store objectID with document
+            objectID.ifPresent(uuid -> sourceService.save(new FileSource(uuid, file.getOriginalFilename())));
             log.info("Indexing file {}", file.getOriginalFilename());
             indexService.indexFile(file);
             log.info("File {} indexed successfully", file.getOriginalFilename());
