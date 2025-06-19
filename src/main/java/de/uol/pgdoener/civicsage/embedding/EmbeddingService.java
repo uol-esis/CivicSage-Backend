@@ -39,7 +39,7 @@ public class EmbeddingService {
             cacheNames = CachingConfig.SEARCH_CACHE_NAME
     )
     public List<Document> search(SearchRequest search) {
-        log.info("Cache miss for embedding search");
+        log.debug("Cache miss for embedding search");
         return vectorStore.similaritySearch(search);
     }
 
