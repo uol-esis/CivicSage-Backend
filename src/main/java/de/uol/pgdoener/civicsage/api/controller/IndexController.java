@@ -28,15 +28,17 @@ public class IndexController implements IndexApi {
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
         log.info("Received {} files to index", files.size());
         for (MultipartFile file : files) {
-            log.info("Indexing file {}", file.getOriginalFilename());
-            indexService.indexFile(file);
-            log.info("File {} indexed successfully", file.getOriginalFilename());
+            Optional<UUID> objectID = Optional.empty();
             try {
-                Optional<UUID> objectID = storageService.store(file.getInputStream());
-                // TODO store objectID with document
+                objectID = storageService.store(file.getInputStream());
+                log.info("Stored file {}", file.getOriginalFilename());
             } catch (IOException e) {
                 log.error("Error storing file {}", file.getOriginalFilename(), e);
             }
+            // TODO store objectID with document
+            log.info("Indexing file {}", file.getOriginalFilename());
+            indexService.indexFile(file);
+            log.info("File {} indexed successfully", file.getOriginalFilename());
         }
         return ResponseEntity.ok().build();
     }
