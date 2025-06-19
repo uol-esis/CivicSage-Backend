@@ -1,12 +1,9 @@
 package de.uol.pgdoener.civicsage.storage;
 
-import org.springframework.stereotype.Service;
-
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 
-@Service
 public interface StorageService {
 
     /**

@@ -10,7 +10,7 @@ public class S3Config {
 
     @Value("${s3.url}")
     private String url;
-    @Value("${s3.access.name}")
+    @Value("${s3.access.id}")
     private String accessKey;
     @Value("${s3.access.secret}")
     private String accessSecret;
