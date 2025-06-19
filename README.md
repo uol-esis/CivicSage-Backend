@@ -19,6 +19,12 @@ To run the project, run the following command:
 java -jar target/CivicSage-0.0.1-SNAPSHOT.jar
 ```
 
+## Running the project
+
+In order to use the application you need to provide a configuration to access a LLM. Our recommended approach during
+development is to use [Docker Model Runner](https://docs.docker.com/ai/model-runner/) (DMR). But you may also provide
+the configuration for openAI or any other platform that provides a openAI like API.
+
 ## OpenAPI
 
 This project uses OpenAPI to document the API and generate the server code.
