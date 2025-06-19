@@ -72,7 +72,7 @@ public class SearchService {
     }
 
     private List<Document> applyPagination(List<Document> documents, int pageNumber, int pageSize) {
-        int startIndex = ((pageNumber + 1) * pageSize) - pageSize;
+        int startIndex = pageNumber * pageSize;
         int endIndex = startIndex + pageSize;
         if (endIndex > documents.size()) {
             endIndex = documents.size();
