@@ -2,15 +2,13 @@ package de.uol.pgdoener.civicsage.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
-import de.uol.pgdoener.civicsage.config.CachingConfig;
+import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.mapper.SearchResultMapper;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,12 +22,9 @@ public class SearchService {
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 20;
 
-    private final VectorStore vectorStore;
+    private final EmbeddingService embeddingService;
     private final SearchResultMapper searchResultMapper;
 
-    @Cacheable(
-            cacheNames = CachingConfig.SEARCH_CACHE_NAME
-    )
     public List<SearchResultDto> search(SearchQueryDto query, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Searching for documents with query {}", query);
         int pNumber = pageNumber.orElse(DEFAULT_PAGE_NUMBER);
@@ -39,7 +34,7 @@ public class SearchService {
 
         // use SearchRequest instead of String to allow for more complex queries
         SearchRequest searchRequest = buildSearchRequest(query, resultsToFetch);
-        List<Document> documents = vectorStore.similaritySearch(searchRequest);
+        List<Document> documents = embeddingService.search(searchRequest);
 
         if (documents == null || documents.isEmpty()) {
             log.info("No documents found for query {}", query);
