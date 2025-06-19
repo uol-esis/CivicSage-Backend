@@ -27,6 +27,7 @@ public class IndexController implements IndexApi {
     private final StorageService storageService;
     private final SourceService sourceService;
 
+    // TODO move logic to a service
     @Override
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
         log.info("Received {} files to index", files.size());
@@ -37,11 +38,15 @@ public class IndexController implements IndexApi {
                 log.info("Stored file {}", file.getOriginalFilename());
             } catch (IOException e) {
                 log.error("Error storing file {}", file.getOriginalFilename(), e);
+                continue;
             }
-            objectID.ifPresent(uuid -> sourceService.save(new FileSource(uuid, file.getOriginalFilename())));
-            log.info("Indexing file {}", file.getOriginalFilename());
-            indexService.indexFile(file);
-            log.info("File {} indexed successfully", file.getOriginalFilename());
+            if (objectID.isPresent()) {
+                sourceService.save(new FileSource(objectID.get(), file.getOriginalFilename()));
+                log.info("Indexing file {}", file.getOriginalFilename());
+                indexService.indexFile(file, objectID.get());
+                log.info("File {} indexed successfully", file.getOriginalFilename());
+            }
+
         }
         return ResponseEntity.ok().build();
     }
