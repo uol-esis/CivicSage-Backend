@@ -7,6 +7,7 @@ import org.springframework.ai.document.Document;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +22,7 @@ class SearchResultMapperTest {
                 .text("content")
                 .metadata(Map.of(
                         FILE_NAME, "file.pdf",
-                        FILE_ID, "uuid"
+                        FILE_ID, UUID.randomUUID().toString()
                 ))
                 .score(0.42)
                 .build();
@@ -63,7 +64,7 @@ class SearchResultMapperTest {
                         .text("content1")
                         .metadata(Map.of(
                                 FILE_NAME, "file.pdf",
-                                FILE_ID, "uuid"
+                                FILE_ID, UUID.randomUUID().toString()
                         ))
                         .score(0.42)
                         .build(),
