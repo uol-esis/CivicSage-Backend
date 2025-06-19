@@ -61,6 +61,7 @@ public class MinioStorageService implements StorageService {
 
     @PostConstruct
     private void ensureBucketExistence() {
+        log.warn("Bucket existence not ensured yet!");
         // FIXME implement this
     }
 }
