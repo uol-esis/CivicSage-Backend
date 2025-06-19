@@ -8,8 +8,7 @@ import org.springframework.ai.document.Document;
 import java.util.List;
 import java.util.Map;
 
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SearchResultMapperTest {
@@ -21,7 +20,8 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        FILE_NAME, "file.pdf"
+                        FILE_NAME, "file.pdf",
+                        FILE_ID, "uuid"
                 ))
                 .score(0.42)
                 .build();
@@ -62,7 +62,8 @@ class SearchResultMapperTest {
                 Document.builder()
                         .text("content1")
                         .metadata(Map.of(
-                                FILE_NAME, "file.pdf"
+                                FILE_NAME, "file.pdf",
+                                FILE_ID, "uuid"
                         ))
                         .score(0.42)
                         .build(),
