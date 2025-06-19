@@ -3,3 +3,8 @@ spring.datasource.password=example
 spring.datasource.url=jdbc:postgresql://localhost:5432/example
 # default model: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
 civicsage.embedding.model.context-length=256
+s3.url=http://localhost:3900
+s3.access.name=<Key ID>
+s3.access.secret=<Secret key>
+s3.bucket.name=civicsage-bucket
+s3.region=garage

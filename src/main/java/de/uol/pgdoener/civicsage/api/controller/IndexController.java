@@ -3,14 +3,18 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.IndexApi;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
+import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -18,6 +22,7 @@ import java.util.Map;
 public class IndexController implements IndexApi {
 
     private final IndexService indexService;
+    private final StorageService storageService;
 
     @Override
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
@@ -26,6 +31,12 @@ public class IndexController implements IndexApi {
             log.info("Indexing file {}", file.getOriginalFilename());
             indexService.indexFile(file);
             log.info("File {} indexed successfully", file.getOriginalFilename());
+            try {
+                Optional<UUID> objectID = storageService.store(file.getInputStream());
+                // TODO store objectID with document
+            } catch (IOException e) {
+                log.error("Error storing file {}", file.getOriginalFilename(), e);
+            }
         }
         return ResponseEntity.ok().build();
     }
