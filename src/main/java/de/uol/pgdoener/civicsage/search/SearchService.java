@@ -2,13 +2,13 @@ package de.uol.pgdoener.civicsage.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
+import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.mapper.SearchResultMapper;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,30 +21,47 @@ public class SearchService {
 
     private static final int DEFAULT_PAGE_NUMBER = 0;
     private static final int DEFAULT_PAGE_SIZE = 20;
+    /**
+     * The number of pages to fetch in one go when searching.
+     */
+    private static final int PAGE_CACHE_WINDOW_SIZE = 4;
 
-    private final VectorStore vectorStore;
+    private final EmbeddingService embeddingService;
     private final SearchResultMapper searchResultMapper;
 
     public List<SearchResultDto> search(SearchQueryDto query, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Searching for documents with query {}", query);
         int pNumber = pageNumber.orElse(DEFAULT_PAGE_NUMBER);
         int pSize = pageSize.orElse(DEFAULT_PAGE_SIZE);
-        int resultsToFetch = (pNumber + 1) * pSize;
+        int resultsToFetch = calculateResultsToFetch(pNumber, pSize);
         log.debug("topK = {}", resultsToFetch);
 
-        // use SearchRequest instead of String to allow for more complex queries
         SearchRequest searchRequest = buildSearchRequest(query, resultsToFetch);
-        List<Document> documents = vectorStore.similaritySearch(searchRequest);
+        List<Document> documents = embeddingService.search(searchRequest);
 
         if (documents == null || documents.isEmpty()) {
             log.info("No documents found for query {}", query);
             return List.of();
         }
 
-        log.info("Found {} documents for query {}", documents.size(), query);
+        log.info("Found {} documents", documents.size());
         documents = applyPagination(documents, pNumber, pSize);
 
         return searchResultMapper.toDto(documents);
+    }
+
+    private int calculateResultsToFetch(int pageNumber, int pageSize) {
+        if (pageNumber < 0 || pageSize <= 0) {
+            throw new IllegalArgumentException("Page number must be >= 0 and page size must be > 0");
+        }
+
+        // Which cache window are we in?
+        int cacheWindow = (pageNumber / PAGE_CACHE_WINDOW_SIZE) + 1;
+        // Calculate how many pages we need to fetch
+        int pagesToFetch = (cacheWindow * PAGE_CACHE_WINDOW_SIZE);
+        log.debug("pagesToFetch = {}", pagesToFetch);
+
+        return pagesToFetch * pageSize;
     }
 
     private SearchRequest buildSearchRequest(SearchQueryDto query, int resultsToFetch) {
@@ -55,13 +72,19 @@ public class SearchService {
     }
 
     private List<Document> applyPagination(List<Document> documents, int pageNumber, int pageSize) {
-        int startIndex = ((pageNumber + 1) * pageSize) - pageSize;
+        int startIndex = pageNumber * pageSize;
+        int endIndex = startIndex + pageSize;
+        if (endIndex > documents.size()) {
+            endIndex = documents.size();
+        }
+
         log.debug("startIndex = {}", startIndex);
+        log.debug("endIndex = {}", endIndex);
 
         if (startIndex >= documents.size())
             throw new NotEnoughResultsAvailableException("Only " + documents.size() + " results were found!");
 
-        return documents.subList(startIndex, documents.size());
+        return documents.subList(startIndex, endIndex);
     }
 
 }
