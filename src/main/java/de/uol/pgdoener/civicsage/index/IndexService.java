@@ -48,6 +48,7 @@ public class IndexService {
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl();
+        url = normalizeURL(url);
         sourceService.verifyWebsiteNotIndexed(url);
 
         List<Document> documents = documentReaderService.readURL(url);
@@ -57,6 +58,20 @@ public class IndexService {
 
         embeddingService.save(documents);
         sourceService.save(new WebsiteSource(null, url));
+    }
+
+    public String normalizeURL(String url) {
+        // make sure url starts with a protocol
+        if (!url.matches("^[a-z]+://.+")) {
+            url = "https://" + url;
+        }
+
+        // make sure there is no trailing slash "/"
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+
+        return url;
     }
 
     private List<Document> postProcessDocuments(List<Document> documents) {
