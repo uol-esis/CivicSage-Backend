@@ -30,14 +30,10 @@ public class DocumentReaderService {
     }
 
     public List<Document> readURL(String url) {
-        // make sure url starts with http(s)://
-        if (url.matches("^[a-z]+://.+")) {
-            //noinspection HttpUrlsUsage
-            if (!(url.startsWith("http://") || url.startsWith("https://"))) {
-                throw new ReadUrlException("Invalid protocol used in URL: " + url);
-            }
-        } else {
-            url = "https://" + url;
+        // can only read urls using HTTP(S)
+        //noinspection HttpUrlsUsage
+        if (!(url.startsWith("http://") || url.startsWith("https://"))) {
+            throw new ReadUrlException("Invalid protocol used in URL: " + url);
         }
 
         DocumentReader documentReader = documentReaderFactory.createForURL(url);

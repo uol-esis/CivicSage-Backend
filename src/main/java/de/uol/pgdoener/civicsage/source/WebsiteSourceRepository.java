@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface FileSourceRepository
-        extends CrudRepository<FileSource, UUID> {
+public interface WebsiteSourceRepository
+        extends CrudRepository<WebsiteSource, UUID> {
 
-    boolean existsByHash(String hash);
+    boolean existsByUrl(String url);
 
 }
