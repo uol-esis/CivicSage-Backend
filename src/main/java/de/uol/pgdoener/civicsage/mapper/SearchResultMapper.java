@@ -33,7 +33,8 @@ public class SearchResultMapper {
 
         if (fileName instanceof String file) {
             searchResultDto.fileName(file);
-            searchResultDto.fileId(toFileRef(metadata));
+            if (metadata.get(FILE_ID) instanceof String fileIdString)
+                searchResultDto.fileId(UUID.fromString(fileIdString));
             if (metadata.get(TITLE) instanceof String t)
                 searchResultDto.title(t);
             else
@@ -58,10 +59,6 @@ public class SearchResultMapper {
         }
 
         return title.replace('_', ' ');
-    }
-
-    private UUID toFileRef(Map<String, Object> metadata) {
-        return UUID.randomUUID();
     }
 
 }

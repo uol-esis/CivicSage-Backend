@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
+
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
 
 @Slf4j
 @Service
@@ -23,11 +26,12 @@ public class IndexService {
     private final EmbeddingService embeddingService;
     private final TextSplitter textSplitter;
 
-    public void indexFile(@NonNull MultipartFile file) {
+    public void indexFile(@NonNull MultipartFile file, UUID objectId) {
         List<Document> documents = documentReaderService.read(file);
         log.debug("Read {} documents from file: {}", documents.size(), file.getOriginalFilename());
 
         documents = postProcessDocuments(documents);
+        documents.forEach(document -> document.getMetadata().put(FILE_ID, objectId));
 
         embeddingService.save(documents);
     }

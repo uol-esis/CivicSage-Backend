@@ -19,6 +19,13 @@ To run the project, run the following command:
 java -jar target/CivicSage-0.0.1-SNAPSHOT.jar
 ```
 
+## Running the project
+
+In order to use the application you need to provide a configuration to access a LLM. Our recommended approach during
+development is to use [Docker Model Runner](https://docs.docker.com/ai/model-runner/) (DMR). But you may also provide
+the configuration for openAI or any other platform that provides a openAI like API. The default model to use is
+currently `ai/mxbai-embed-large`. Please provide it via `docker model pull ai/mxbai-embed-large`.
+
 ## OpenAPI
 
 This project uses OpenAPI to document the API and generate the server code.
@@ -44,16 +51,13 @@ While the project is running, you can access the Swagger UI at http://localhost:
 
 ## Configuring the EmbeddingModel
 
-To embed text, this project uses the `EmbeddingModel` interface from Spring AI.
-By default, it uses the `TransformersEmbeddingModel`
-[(documentation)](https://docs.spring.io/spring-ai/reference/api/embeddings/onnx.html) implementation,
-which requires a model URI and a tokenizer URI.
-You can configure these properties in your `application.properties` file.
+Prior versions did host the embedding model within this application. For better scaling the LLM has been separated into
+a separate source. Setting up the model is not scope of this project. For development, we recommend the usage of Docker
+Model Runner. For production, a separate service should be used, self-hosted or from a cloud provider. Configuring the
+model is done using the following properties:
 
 ```properties
-spring.ai.embedding.transformer.onnx.modelUri=https://example.com/model.onnx
-spring.ai.embedding.transformer.tokenizer.uri=https://example.com/tokenizer.json
+spring.ai.openai.embedding.options.model=ai/mxbai-embed-large
+spring.ai.openai.base-url=http://localhost:12434/engines
+spring.ai.openai.api-key=test
 ```
-
-Spring AI has a default model URI and tokenizer URI that you can use for testing purposes.
-The model is downloaded at startup and cached for subsequent runs.
