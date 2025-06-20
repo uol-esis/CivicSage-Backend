@@ -20,7 +20,7 @@ public class WebsiteSource {
     @GeneratedValue
     private UUID id;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", unique = true)
     private String url;
 
 }

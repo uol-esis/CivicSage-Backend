@@ -41,7 +41,6 @@ public class IndexController implements IndexApi {
                 continue;
             }
             if (objectID.isPresent()) {
-                sourceService.save(new FileSource(objectID.get(), file.getOriginalFilename()));
                 log.info("Indexing file {}", file.getOriginalFilename());
                 indexService.indexFile(file, objectID.get());
                 log.info("File {} indexed successfully", file.getOriginalFilename());

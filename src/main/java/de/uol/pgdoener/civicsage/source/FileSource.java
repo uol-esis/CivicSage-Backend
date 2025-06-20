@@ -21,4 +21,7 @@ public class FileSource {
     @Column(nullable = false)
     private String fileName;
 
+    @Column(unique = true)
+    private String hash;
+
 }

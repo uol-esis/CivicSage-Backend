@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.source.exception.HashingException;
 import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,6 +23,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(HashingException.class)
+    public ResponseEntity<Object> handleHashingException(HashingException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.debug("HashingException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(SourceCollisionException.class)
     public ResponseEntity<Object> handleSourceCollisionException(SourceCollisionException ex) {

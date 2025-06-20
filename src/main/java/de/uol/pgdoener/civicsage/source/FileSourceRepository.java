@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface FileSourceRepository
         extends CrudRepository<FileSource, UUID> {
 
+    boolean existsByHash(String hash);
+
 }

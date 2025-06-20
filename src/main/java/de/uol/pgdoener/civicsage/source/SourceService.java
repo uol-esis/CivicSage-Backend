@@ -5,6 +5,7 @@ import de.uol.pgdoener.civicsage.source.exception.SourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class SourceService {
 
     private final FileSourceRepository fileSourceRepository;
     private final WebsiteSourceRepository websiteSourceRepository;
+    private final FileHashingService fileHashingService;
 
     public void save(FileSource fileSource) {
         fileSourceRepository.save(fileSource);
@@ -35,6 +37,13 @@ public class SourceService {
     public void verifyWebsiteNotIndexed(String url) {
         if (websiteSourceRepository.existsByUrl(url)) {
             throw new SourceCollisionException("Website is already indexed");
+        }
+    }
+
+    public void verifyFileNotIndexed(MultipartFile file) {
+        String hash = fileHashingService.hash(file);
+        if (fileSourceRepository.existsByHash(hash)) {
+            throw new SourceCollisionException("File is already indexed");
         }
     }
 
