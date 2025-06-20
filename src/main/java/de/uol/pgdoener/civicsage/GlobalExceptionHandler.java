@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.source.exception.SourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SourceNotFoundException.class)
+    public ResponseEntity<Object> handleSourceNotFoundException(SourceNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
+        log.debug("SourceNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(NotEnoughResultsAvailableException.class)
     public ResponseEntity<Object> handleNotEnoughResultsAvailableException(NotEnoughResultsAvailableException ex) {
