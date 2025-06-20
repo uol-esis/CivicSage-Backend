@@ -33,7 +33,8 @@ public class IndexService {
     private final FileHashingService fileHashingService;
 
     public void indexFile(@NonNull MultipartFile file, UUID objectId) {
-        sourceService.verifyFileNotIndexed(file);
+        String hash = fileHashingService.hash(file);
+        sourceService.verifyFileHashNotIndexed(hash);
 
         List<Document> documents = documentReaderService.read(file);
         log.debug("Read {} documents from file: {}", documents.size(), file.getOriginalFilename());
@@ -42,7 +43,6 @@ public class IndexService {
         documents.forEach(document -> document.getMetadata().put(FILE_ID, objectId));
 
         embeddingService.save(documents);
-        String hash = fileHashingService.hash(file);
         sourceService.save(new FileSource(objectId, file.getOriginalFilename(), hash));
     }
 
