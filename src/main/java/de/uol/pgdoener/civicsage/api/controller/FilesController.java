@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.FilesApi;
+import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class FilesController implements FilesApi {
 
     private final StorageService storageService;
+    private final SourceService sourceService;
 
     @Override
     public ResponseEntity<Resource> downloadFile(UUID id) {
@@ -31,13 +33,13 @@ public class FilesController implements FilesApi {
             return ResponseEntity.notFound().build();
         }
         InputStreamResource inputStreamResource = new InputStreamResource(optionalInputStream.get());
+        String fileName = sourceService.getFileSourceById(id).getFileName();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename("fileName") // TODO retrieve original file name from database
+                .filename(fileName)
                 .build());
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        // TODO test if content length has to be set here
 
         log.debug("Returning file as download");
         return ResponseEntity.ok()
