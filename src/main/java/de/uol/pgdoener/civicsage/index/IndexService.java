@@ -3,6 +3,8 @@ package de.uol.pgdoener.civicsage.index;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.source.SourceService;
+import de.uol.pgdoener.civicsage.source.WebsiteSource;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
 @RequiredArgsConstructor
 public class IndexService {
 
+    private final SourceService sourceService;
     private final DocumentReaderService documentReaderService;
     private final SemanticSplitterService semanticSplitterService;
     private final EmbeddingService embeddingService;
@@ -38,6 +41,7 @@ public class IndexService {
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl();
+        sourceService.verifyWebsiteNotIndexed(url);
 
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
@@ -45,6 +49,7 @@ public class IndexService {
         documents = postProcessDocuments(documents);
 
         embeddingService.save(documents);
+        sourceService.save(new WebsiteSource(null, url));
     }
 
     private List<Document> postProcessDocuments(List<Document> documents) {
