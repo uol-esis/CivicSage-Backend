@@ -1,6 +1,8 @@
 # Example compose file for local development and testing
 # DO NOT USE IN PRODUCTION!
 # DO NOT USE DEFAULT CREDENTIALS IN PRODUCTION!
+
+# It is required to have the object storage service running before starting this stack.
 name: CivicSage Stack
 services:
   civicsage:
@@ -13,6 +15,15 @@ services:
       SPRING_DATASOURCE_PASSWORD: example
       SECURITY_ALLOWED-ORIGINS: localhost:8080
       LOGGING_LEVEL_DE_UOL_PGDOENER_CIVICSAGE: DEBUG
+      CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
+      SPRING_AI_OPENAI_BASEURL: http://host.docker.internal:12434/engines
+      S3_URL: http://host.docker.internal:3900
+      S3_BUCKET_NAME: civicsage-bucket
+      S3_REGION: garage
+    env_file:
+      - civicsage.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy
@@ -27,15 +38,4 @@ services:
       - PGUSER=example
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
-  objectstorage:
-    container_name: garaged
-    ports:
-      - "3900:3900"
-      - "3901:3901"
-      - "3902:3902"
-      - "3903:3903"
-    volumes:
-      - ./objectstorage/garage.toml:/etc/garage.toml
-      - ./objectstorage/meta:/var/lib/garage/meta
-      - ./objectstorage/data:/var/lib/garage/data
-    image: dxflrs/garage:v2.0.0
+      start_period: 5s
