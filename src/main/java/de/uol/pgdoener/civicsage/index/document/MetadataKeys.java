@@ -1,19 +1,22 @@
 package de.uol.pgdoener.civicsage.index.document;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class MetadataKeys {
+@Getter
+public enum MetadataKeys {
 
-    public static final String FILE_NAME = "file_name";
-    public static final String FILE_ID = "file_id";
+    FILE_NAME("file_name"),
+    FILE_ID("file_id"),
+    LINE_NUMBER("line_number"),
+    START_PAGE("page_number"),
+    END_PAGE("end_page_number"),
+    TITLE("title"),
+    URL("url");
 
-    public static final String LINE_NUMBER = "line_number";
-    public static final String START_PAGE = "page_number";
-    public static final String END_PAGE = "end_page_number";
-    public static final String TITLE = "title";
+    private final String value;
 
-    public static final String URL = "url";
+    private MetadataKeys(String value) {
+        this.value = value;
+    }
 
 }

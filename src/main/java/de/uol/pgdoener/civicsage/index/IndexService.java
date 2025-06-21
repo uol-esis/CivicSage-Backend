@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
@@ -26,12 +27,13 @@ public class IndexService {
     private final EmbeddingService embeddingService;
     private final TextSplitter textSplitter;
 
-    public void indexFile(@NonNull MultipartFile file, UUID objectId) {
+    public void indexFile(@NonNull MultipartFile file, UUID objectId, Map<String, String> metadata) {
         List<Document> documents = documentReaderService.read(file);
         log.debug("Read {} documents from file: {}", documents.size(), file.getOriginalFilename());
 
         documents = postProcessDocuments(documents);
-        documents.forEach(document -> document.getMetadata().put(FILE_ID, objectId));
+        documents.forEach(document -> document.getMetadata().put(FILE_ID.getValue(), objectId));
+        addMetadataToDocuments(documents, metadata);
 
         embeddingService.save(documents);
     }
@@ -43,7 +45,7 @@ public class IndexService {
         log.debug("Read {} documents from url: {}", documents.size(), url);
 
         documents = postProcessDocuments(documents);
-
+        addMetadataToDocuments(documents, indexWebsiteRequestDto.getAdditionalMetadata());
         embeddingService.save(documents);
     }
 
@@ -57,6 +59,16 @@ public class IndexService {
         log.debug("Split into {} chunks to fit context window", documents.size());
 
         return documents;
+    }
+
+    private void addMetadataToDocuments(List<Document> documents, Map<String, String> metadata) {
+        if (metadata == null)
+            return;
+        documents.forEach(document -> {
+            for (Map.Entry<String, String> entry : metadata.entrySet()) {
+                document.getMetadata().put(entry.getKey(), entry.getValue());
+            }
+        });
     }
 
 }

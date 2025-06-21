@@ -30,9 +30,10 @@ public class IndexController implements IndexApi {
     // TODO move logic to a service
     @Override
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
+        // FIXME: correctly obtain the additional metadata as Map
         log.info("Received {} files to index", files.size());
         for (MultipartFile file : files) {
-            Optional<UUID> objectID = Optional.empty();
+            Optional<UUID> objectID;
             try {
                 objectID = storageService.store(file.getInputStream());
                 log.info("Stored file {}", file.getOriginalFilename());
@@ -43,7 +44,7 @@ public class IndexController implements IndexApi {
             if (objectID.isPresent()) {
                 sourceService.save(new FileSource(objectID.get(), file.getOriginalFilename()));
                 log.info("Indexing file {}", file.getOriginalFilename());
-                indexService.indexFile(file, objectID.get());
+                indexService.indexFile(file, objectID.get(), additionalMetadata);
                 log.info("File {} indexed successfully", file.getOriginalFilename());
             }
 

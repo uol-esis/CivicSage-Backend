@@ -29,13 +29,13 @@ public class DocumentReaderFactory {
             case "txt" -> {
                 log.info("Indexing file as plain text file");
                 TextReader reader = new TextReader(file.getResource());
-                reader.getCustomMetadata().put(FILE_NAME, file.getOriginalFilename());
+                reader.getCustomMetadata().put(FILE_NAME.getValue(), file.getOriginalFilename());
                 yield reader;
             }
             case "md", "markdown" -> {
                 log.info("Indexing file as Markdown file");
                 MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.defaultConfig();
-                config.additionalMetadata.put(FILE_NAME, file.getOriginalFilename());
+                config.additionalMetadata.put(FILE_NAME.getValue(), file.getOriginalFilename());
                 yield new MarkdownDocumentReader(file.getResource(), config);
             }
             case "pdf" -> {
@@ -52,7 +52,7 @@ public class DocumentReaderFactory {
                     @Override
                     public List<Document> read() {
                         return super.read().stream()
-                                .peek(d -> d.getMetadata().put(FILE_NAME, file.getOriginalFilename()))
+                                .peek(d -> d.getMetadata().put(FILE_NAME.getValue(), file.getOriginalFilename()))
                                 .toList();
                     }
                 };
@@ -63,7 +63,7 @@ public class DocumentReaderFactory {
 
     public DocumentReader createForURL(@NonNull String url) {
         JsoupDocumentReaderConfig config = JsoupDocumentReaderConfig.builder()
-                .additionalMetadata(URL, url)
+                .additionalMetadata(URL.getValue(), url)
                 .build();
         return new JsoupDocumentReader(url, config);
     }
