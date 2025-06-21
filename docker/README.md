@@ -8,12 +8,29 @@ have been gathered in individual scripts:
 | createGarageToml.sh | generates a new `garage.toml` file for the object storage to be functional |
 | configure.sh        | configures the object storage; will be used by a helper container          |
 
-The steps to get the object storage started are as follows (from within the `docker` directory):
+The steps to get the whole stack started are as follows (from within the `docker` directory):
 
-1. Start the object storage with `docker compose -f objectstarage.yaml up`
-2. On the first start, the helper script will print a key id and a secret key to the console.
-3. Enter the credentials in `civicsage.env` for docker deployment or `application.properties` for local development.
-4. Start the rest of the stack with `docker compose up`.
+1. Start and configure the object storage with
+   `docker compose up garage garage_config -d && docker compose logs garage_config -f`
+    1. Wait until you see the following output in the console:
+    ```console
+    THE FOLLOWING KEY HAS BEEN GENERATED
+    ================
+    KEY ID: <SOME_KEY_ID>
+    SECRET_KEY: <SOME_SECRET_KEY>
+    ```
+    2. When everything worked correctly, you should now be back to the command line prompt.
+2. Copy the credentials into `civicsage.env` for docker deployment or `application.properties` for local
+   development.
+    1. For the docker deployment it's recommended to copy `civicsage.env.sample` without the
+       `.sample` suffix into the same directory and fill in the credentials.
+3. If using the docker deployment, start the rest of the stack with `docker compose up --build`.
+
+> [!TIP]
+> To start all relevant services for development, you may use the following command:
+> ```bash
+> docker compose up garage garage_config db -d && docker compose logs -f
+> ```
 
 As Garage is just starting with developing a UI for bucket administration, the scripts are required to be able to
 configure the stack. However, once the UI is ready, we will have an eye on it to check if it can replace the current

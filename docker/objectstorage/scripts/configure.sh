@@ -44,7 +44,7 @@ else
   garage bucket info civicsage-bucket
   echo "================"
   echo "================"
-  echo "THE FOLLOWING KEY HAVE BEEN GENERATED"
+  echo "THE FOLLOWING KEY HAS BEEN GENERATED"
   echo "================"
   echo "KEY ID: $KEY_ID"
   echo "SECRET_KEY: $SECRET_KEY"

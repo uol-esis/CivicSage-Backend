@@ -17,16 +17,19 @@ services:
       LOGGING_LEVEL_DE_UOL_PGDOENER_CIVICSAGE: DEBUG
       CIVICSAGE_EMBEDDING_MODEL_CONTEXTLENGTH: 256
       SPRING_AI_OPENAI_BASEURL: http://host.docker.internal:12434/engines
-      S3_URL: http://host.docker.internal:3900
+      S3_URL: http://garage:3900
       S3_BUCKET_NAME: civicsage-bucket
       S3_REGION: garage
     env_file:
-      - civicsage.env
+      - path: civicsage.env
+        required: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy
+      garage:
+        condition: service_started
   db:
     image: pgvector/pgvector:pg17
     ports:
@@ -39,3 +42,37 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready" ]
       start_period: 5s
+
+  garage:
+    image: dxflrs/garage:v2.0.0
+    container_name: garaged
+    ports:
+      - "3900:3900"
+      - "3901:3901"
+      - "3902:3902"
+      - "3903:3903"
+    volumes:
+      - ./objectstorage/garage.toml:/etc/garage.toml
+      - ./objectstorage/meta:/var/lib/garage/meta
+      - ./objectstorage/data:/var/lib/garage/data
+
+  garage_config:
+    image: docker:cli
+    container_name: garage_config
+    depends_on:
+      garage:
+        condition: service_started
+    volumes:
+      - ./objectstorage/scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      "
+      echo 'Waiting for Garage service...';
+      until nc -z garage 3900; do
+        echo 'Garage not available yet. Sleeping...';
+        sleep 2;
+      done;
+      echo 'Garage is available. Running initialization...';
+      /scripts/configure.sh;
+      "
