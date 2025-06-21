@@ -15,7 +15,7 @@ RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests --activate-profiles docker
 
 # Phase 2: Runtime
-FROM eclipse-temurin:21-jre-noble
+FROM eclipse-temurin:21-jre-alpine
 
 # Set work directory
 WORKDIR /opt/pg
@@ -25,7 +25,7 @@ RUN addgroup --system pg && \
     adduser --system --no-create-home --ingroup pg pg && \
     chown -R pg:pg /opt/pg
 
-# Copy the JAR fromRequest the build stage
+# Copy the JAR from the build stage
 COPY --from=build /app/target/civicsage.jar app.jar
 
 # Change to 'pg' user
