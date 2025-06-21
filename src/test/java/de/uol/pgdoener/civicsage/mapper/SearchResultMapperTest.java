@@ -21,8 +21,8 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        FILE_NAME, "file.pdf",
-                        FILE_ID, UUID.randomUUID().toString()
+                        FILE_NAME.getValue(), "file.pdf",
+                        FILE_ID.getValue(), UUID.randomUUID().toString()
                 ))
                 .score(0.42)
                 .build();
@@ -42,7 +42,7 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        URL, "example.com"
+                        URL.getValue(), "example.com"
                 ))
                 .score(0.1)
                 .build();
@@ -63,15 +63,15 @@ class SearchResultMapperTest {
                 Document.builder()
                         .text("content1")
                         .metadata(Map.of(
-                                FILE_NAME, "file.pdf",
-                                FILE_ID, UUID.randomUUID().toString()
+                                FILE_NAME.getValue(), "file.pdf",
+                                FILE_ID.getValue(), UUID.randomUUID().toString()
                         ))
                         .score(0.42)
                         .build(),
                 Document.builder()
                         .text("content2")
                         .metadata(Map.of(
-                                URL, "example.com"
+                                URL.getValue(), "example.com"
                         ))
                         .score(0.1)
                         .build()
