@@ -1,13 +1,11 @@
 package de.uol.pgdoener.civicsage.source;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -22,5 +20,8 @@ public class WebsiteSource {
 
     @Column(columnDefinition = "TEXT", unique = true)
     private String url;
+
+    @ElementCollection
+    private List<String> models;
 
 }
