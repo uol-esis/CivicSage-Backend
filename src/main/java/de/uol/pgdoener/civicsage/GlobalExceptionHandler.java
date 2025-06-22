@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import de.uol.pgdoener.civicsage.source.exception.HashingException;
 import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
@@ -24,6 +25,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<Object> handleStorageException(StorageException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.debug("StorageException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(HashingException.class)
     public ResponseEntity<Object> handleHashingException(HashingException ex) {
