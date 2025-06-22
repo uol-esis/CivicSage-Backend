@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.source;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,15 +14,13 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileSource {
+public class WebsiteSource {
 
     @Id
-    private UUID objectStorageId;
+    @GeneratedValue
+    private UUID id;
 
-    @Column(nullable = false)
-    private String fileName;
-
-    @Column(unique = true)
-    private String hash;
+    @Column(columnDefinition = "TEXT", unique = true)
+    private String url;
 
 }

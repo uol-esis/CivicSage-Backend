@@ -3,20 +3,14 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.IndexApi;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
-import de.uol.pgdoener.civicsage.source.FileSource;
-import de.uol.pgdoener.civicsage.source.SourceService;
-import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Controller
@@ -24,29 +18,14 @@ import java.util.UUID;
 public class IndexController implements IndexApi {
 
     private final IndexService indexService;
-    private final StorageService storageService;
-    private final SourceService sourceService;
 
-    // TODO move logic to a service
     @Override
     public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
         log.info("Received {} files to index", files.size());
         for (MultipartFile file : files) {
-            Optional<UUID> objectID = Optional.empty();
-            try {
-                objectID = storageService.store(file.getInputStream());
-                log.info("Stored file {}", file.getOriginalFilename());
-            } catch (IOException e) {
-                log.error("Error storing file {}", file.getOriginalFilename(), e);
-                continue;
-            }
-            if (objectID.isPresent()) {
-                sourceService.save(new FileSource(objectID.get(), file.getOriginalFilename()));
-                log.info("Indexing file {}", file.getOriginalFilename());
-                indexService.indexFile(file, objectID.get());
-                log.info("File {} indexed successfully", file.getOriginalFilename());
-            }
-
+            log.info("Indexing file {}", file.getOriginalFilename());
+            indexService.indexFile(file);
+            log.info("File {} indexed successfully", file.getOriginalFilename());
         }
         return ResponseEntity.ok().build();
     }
