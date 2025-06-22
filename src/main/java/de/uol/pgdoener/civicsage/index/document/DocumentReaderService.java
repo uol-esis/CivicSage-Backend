@@ -10,6 +10,8 @@ import org.springframework.ai.document.DocumentReader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
+import java.net.UnknownHostException;
 import java.util.List;
 
 @Slf4j
@@ -37,7 +39,19 @@ public class DocumentReaderService {
         }
 
         DocumentReader documentReader = documentReaderFactory.createForURL(url);
-        return documentReader.read();
+        List<Document> documents;
+        try {
+            documents = documentReader.read();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof UnknownHostException)
+                throw new ReadUrlException("Unknown host");
+            if (e.getCause() instanceof FileNotFoundException)
+                throw new ReadUrlException("Website not found");
+            if (e.getCause() instanceof IllegalArgumentException illegalArgumentException)
+                throw new ReadUrlException(illegalArgumentException.getMessage());
+            throw new ReadUrlException("Unknown error while reading URL", e);
+        }
+        return documents;
     }
 
 }
