@@ -31,9 +31,7 @@ public class VectorStoreTableNameEnvironmentPostProcessor implements Environment
 
         Object o = environment.getProperty(MODEL_PROPERTY_NAME);
         if (o instanceof String model) {
-            // build table name from model name
-            String tableName = "vector_store_" + model.replace("/", "_");
-            tableName = tableName.replace("-", "_");
+            String tableName = constructTableName(model);
 
             // create new property map
             Map<String, Object> override = new HashMap<>();
@@ -43,6 +41,26 @@ public class VectorStoreTableNameEnvironmentPostProcessor implements Environment
             environment.getPropertySources().addAfter(SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
                     new MapPropertySource("table-name-override-with-model-name", override));
         }
+    }
+
+    /**
+     * This method builds a table name for a database based on the model name.
+     * It is assumed that the model is in the format of a docker <a href="https://docs.docker.com/engine/manage-resources/labels/">label</a>.
+     *
+     * @param modelName the model name to construct the name from
+     * @return a string which can be used as a database table name
+     */
+    private String constructTableName(String modelName) {
+        String cleanModelName = modelName;
+
+        // replace "/" "-" and "."
+        cleanModelName = cleanModelName.replaceAll("[/\\-.]", "_");
+
+        // make sure it does not start with a number
+        if (cleanModelName.matches("^\\d.*"))
+            cleanModelName = "d" + cleanModelName;
+
+        return "vector_store_" + cleanModelName;
     }
 
 }
