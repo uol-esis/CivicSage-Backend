@@ -3,10 +3,13 @@ package de.uol.pgdoener.civicsage.index;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.source.FileHashingService;
 import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.source.WebsiteSource;
+import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +18,9 @@ import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
@@ -31,8 +36,13 @@ public class IndexService {
     private final EmbeddingService embeddingService;
     private final TextSplitter textSplitter;
     private final FileHashingService fileHashingService;
+    private final StorageService storageService;
 
-    public void indexFile(@NonNull MultipartFile file, UUID objectId) {
+    // ######
+    // Files
+    // ######
+
+    public void indexFile(@NonNull MultipartFile file) {
         String hash = fileHashingService.hash(file);
         sourceService.verifyFileHashNotIndexed(hash);
 
@@ -40,11 +50,31 @@ public class IndexService {
         log.debug("Read {} documents from file: {}", documents.size(), file.getOriginalFilename());
 
         documents = postProcessDocuments(documents);
+        UUID objectId = storeInStorage(file);
         documents.forEach(document -> document.getMetadata().put(FILE_ID, objectId));
 
         embeddingService.save(documents);
         sourceService.save(new FileSource(objectId, file.getOriginalFilename(), hash));
     }
+
+    private UUID storeInStorage(MultipartFile file) {
+        Optional<UUID> objectID;
+        try {
+            objectID = storageService.store(file.getInputStream());
+            log.info("Stored file {}", file.getOriginalFilename());
+        } catch (IOException e) {
+            log.error("Error storing file {}", file.getOriginalFilename(), e);
+            throw new ReadFileException("Could not read file", e);
+        }
+        if (objectID.isEmpty()) {
+            throw new StorageException("Could not store file");
+        }
+        return objectID.get();
+    }
+
+    // #########
+    // Websites
+    // #########
 
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl();
@@ -73,6 +103,10 @@ public class IndexService {
 
         return url;
     }
+
+    // ########
+    // General
+    // ########
 
     private List<Document> postProcessDocuments(List<Document> documents) {
         documents = semanticSplitterService.process(documents);
