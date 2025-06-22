@@ -20,7 +20,7 @@ The steps to get the whole stack started are as follows (from within the `docker
     SECRET_KEY: <SOME_SECRET_KEY>
     ```
     2. When everything worked correctly, you should now be back to the command line prompt.
-2. Copy the credentials into `civicsage.env` for docker deployment or `application.properties` for local
+2. Copy the credentials into `civicsage.env` for docker deployment or `application-dev.properties` for local
    development.
     1. For the docker deployment it's recommended to copy `civicsage.env.sample` without the
        `.sample` suffix into the same directory and fill in the credentials.
