@@ -56,10 +56,6 @@ public class VectorStoreTableNameEnvironmentPostProcessor implements Environment
         // replace "/" "-" and "."
         cleanModelName = cleanModelName.replaceAll("[/\\-.]", "_");
 
-        // make sure it does not start with a number
-        if (cleanModelName.matches("^\\d.*"))
-            cleanModelName = "d" + cleanModelName;
-
         return "vector_store_" + cleanModelName;
     }
 
