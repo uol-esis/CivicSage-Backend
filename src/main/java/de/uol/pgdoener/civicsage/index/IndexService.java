@@ -45,7 +45,7 @@ public class IndexService {
         log.debug("Read {} documents from url: {}", documents.size(), url);
 
         documents = postProcessDocuments(documents);
-        addMetadataToDocuments(documents, indexWebsiteRequestDto.getAdditionalMetadata());
+        addMetadataToDocuments(documents, indexWebsiteRequestDto.getAdditionalMetadata().get().getAdditionalProperties());
         embeddingService.save(documents);
     }
 

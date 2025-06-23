@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.IndexApi;
+import de.uol.pgdoener.civicsage.business.dto.AdditionalMetadataDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
 import de.uol.pgdoener.civicsage.source.FileSource;
@@ -14,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,7 +29,8 @@ public class IndexController implements IndexApi {
 
     // TODO move logic to a service
     @Override
-    public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
+    public ResponseEntity<Void> indexFiles(List<MultipartFile> files, AdditionalMetadataDto additionalMetadata) {
+        log.info(additionalMetadata.getAdditionalProperties().toString());
         // FIXME: correctly obtain the additional metadata as Map
         log.info("Received {} files to index", files.size());
         for (MultipartFile file : files) {
@@ -44,7 +45,7 @@ public class IndexController implements IndexApi {
             if (objectID.isPresent()) {
                 sourceService.save(new FileSource(objectID.get(), file.getOriginalFilename()));
                 log.info("Indexing file {}", file.getOriginalFilename());
-                indexService.indexFile(file, objectID.get(), additionalMetadata);
+                indexService.indexFile(file, objectID.get(), additionalMetadata.getAdditionalProperties());
                 log.info("File {} indexed successfully", file.getOriginalFilename());
             }
 

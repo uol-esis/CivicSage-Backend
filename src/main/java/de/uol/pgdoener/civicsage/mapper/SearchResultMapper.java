@@ -60,7 +60,7 @@ public class SearchResultMapper {
                                 .contains(entry.getKey()))
                 .forEach(entry ->
                         searchResultDto
-                                .getAdditionalMetadata()
+                                .getAdditionalMetadata().get().getAdditionalProperties()
                                 .put(entry.getKey(), entry.getValue().toString()));
 
         return searchResultDto;
