@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TextSplitter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +39,9 @@ public class IndexService {
     private final FileHashingService fileHashingService;
     private final StorageService storageService;
 
+    @Value("${spring.ai.openai.embedding.options.model}")
+    private String modelID;
+
     // ######
     // Files
     // ######
@@ -54,7 +58,7 @@ public class IndexService {
         documents.forEach(document -> document.getMetadata().put(FILE_ID, objectId));
 
         embeddingService.save(documents);
-        sourceService.save(new FileSource(objectId, file.getOriginalFilename(), hash));
+        sourceService.save(new FileSource(objectId, file.getOriginalFilename(), hash, List.of(modelID)));
     }
 
     private UUID storeInStorage(MultipartFile file) {
@@ -87,7 +91,7 @@ public class IndexService {
         documents = postProcessDocuments(documents);
 
         embeddingService.save(documents);
-        sourceService.save(new WebsiteSource(null, url));
+        sourceService.save(new WebsiteSource(null, url, List.of(modelID)));
     }
 
     public String normalizeURL(String url) {
