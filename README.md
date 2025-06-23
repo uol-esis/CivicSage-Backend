@@ -61,3 +61,14 @@ spring.ai.openai.embedding.options.model=ai/mxbai-embed-large
 spring.ai.openai.base-url=http://localhost:12434/engines
 spring.ai.openai.api-key=test
 ```
+
+## Upload limits
+
+Upload limits can be configured via the `application.properties` file. The default values are:
+
+```properties
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+server.tomcat.max-part-count=10
+server.tomcat.max-part-header-size=512B
+```
