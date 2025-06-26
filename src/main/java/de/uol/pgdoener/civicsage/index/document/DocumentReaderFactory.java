@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.index.document;
 
+import de.uol.pgdoener.civicsage.index.document.reader.PdfDocumentReader;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,6 @@ import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
 import org.springframework.ai.reader.jsoup.config.JsoupDocumentReaderConfig;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
-import org.springframework.ai.reader.pdf.ParagraphPdfDocumentReader;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +40,7 @@ public class DocumentReaderFactory {
             }
             case "pdf" -> {
                 log.info("Indexing file as PDF file");
-                yield new ParagraphPdfDocumentReader(file.getResource());
+                yield new PdfDocumentReader(file.getResource());
             }
             // https://tika.apache.org/3.1.0/formats.html
             case "odt", "odp", "ods", // LibreOffice
