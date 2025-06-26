@@ -54,7 +54,7 @@ public class VectorStoreTableNameEnvironmentPostProcessor implements Environment
         String cleanModelName = modelName;
 
         // replace "/" "-" and "."
-        cleanModelName = cleanModelName.replaceAll("[/\\-.]", "_");
+        cleanModelName = cleanModelName.replaceAll("[/\\-.:]", "_");
 
         return "vector_store_" + cleanModelName;
     }
