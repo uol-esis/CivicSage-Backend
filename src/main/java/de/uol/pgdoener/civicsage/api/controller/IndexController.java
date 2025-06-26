@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Controller
@@ -20,7 +21,7 @@ public class IndexController implements IndexApi {
     private final IndexService indexService;
 
     @Override
-    public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Map<String, String> additionalMetadata) {
+    public ResponseEntity<Void> indexFiles(List<MultipartFile> files, Optional<Map<String, String>> additionalMetadata) {
         log.info("Received {} files to index", files.size());
         for (MultipartFile file : files) {
             log.info("Indexing file {}", file.getOriginalFilename());
