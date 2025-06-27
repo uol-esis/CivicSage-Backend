@@ -38,13 +38,13 @@ public class DocumentAdvisor implements BaseAdvisor {
                 .map(Document::getText)
                 .reduce("", (current, d) -> current + d + "\n");
 
-        prompt.augmentSystemMessage(systemMessage -> {
+        prompt = prompt.augmentSystemMessage(systemMessage -> {
             String systemMessageText = systemMessage.getText();
             systemMessageText += documentsText;
             return systemMessage.mutate().text(systemMessageText).build();
         });
 
-        return chatClientRequest;
+        return new ChatClientRequest(prompt, context);
     }
 
 
