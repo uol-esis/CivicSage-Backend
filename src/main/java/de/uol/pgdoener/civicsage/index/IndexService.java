@@ -6,7 +6,6 @@ import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.source.FileHashingService;
-import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.source.WebsiteSource;
 import de.uol.pgdoener.civicsage.storage.StorageService;
@@ -20,9 +19,9 @@ import org.springframework.stereotype.Service;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
+import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
 
 @Slf4j
@@ -47,24 +46,22 @@ public class IndexService {
 
     public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
         UUID fileRef = indexFilesRequestInnerDto.getFileId();
-        Objects.requireNonNull(fileRef);
         String fileName = indexFilesRequestInnerDto.getName();
-        Objects.requireNonNull(fileName);
         Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties();
 
 
         InputStream file = storageService.load(fileRef).orElseThrow(() -> new StorageException("Could not load file from storage"));
-        String hash = fileHashingService.hash(file);
-        sourceService.verifyFileHashNotIndexed(hash);
         List<Document> documents = documentReaderService.read(file, fileName);
         log.debug("Read {} documents from file: {}", documents.size(), fileName);
 
         documents = postProcessDocuments(documents);
-        documents.forEach(document -> document.getMetadata().put(FILE_ID.getValue(), fileRef));
-        addMetadataToDocuments(documents, additionalMetadata);
+        documents.forEach(document -> {
+            document.getMetadata().put(FILE_ID.getValue(), fileRef);
+            document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalMetadata);
+        });
+
 
         embeddingService.save(documents);
-        sourceService.save(new FileSource(fileRef, fileName, hash, List.of(modelID)));
     }
 
 
@@ -81,7 +78,8 @@ public class IndexService {
         log.debug("Read {} documents from url: {}", documents.size(), url);
 
         documents = postProcessDocuments(documents);
-        addMetadataToDocuments(documents, indexWebsiteRequestDto.getAdditionalProperties());
+        documents.forEach(document ->
+                document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), indexWebsiteRequestDto.getAdditionalProperties()));
         embeddingService.save(documents);
         sourceService.save(new WebsiteSource(null, url, List.of(modelID)));
     }
@@ -114,16 +112,6 @@ public class IndexService {
         log.debug("Split into {} chunks to fit context window", documents.size());
 
         return documents;
-    }
-
-    private void addMetadataToDocuments(List<Document> documents, Map<String, Object> metadata) {
-        if (metadata == null)
-            return;
-        documents.forEach(document -> {
-            for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                document.getMetadata().put(entry.getKey(), entry);
-            }
-        });
     }
 
 }

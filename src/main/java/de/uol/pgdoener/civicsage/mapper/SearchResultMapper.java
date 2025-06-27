@@ -1,13 +1,11 @@
 package de.uol.pgdoener.civicsage.mapper;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
-import de.uol.pgdoener.civicsage.index.document.MetadataKeys;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -49,19 +47,11 @@ public class SearchResultMapper {
             log.error("Document is neither a file nor a url: {}", document);
         }
 
-        // add all remaining metadata entries
-        metadata
-                .entrySet()
-                .stream()
-                .filter(entry ->
-                        !Arrays.stream(MetadataKeys.values())
-                                .map(MetadataKeys::getValue)
-                                .toList()
-                                .contains(entry.getKey()))
-                .forEach(entry ->
-                        searchResultDto
-                                .getAdditionalProperties()
-                                .put(entry.getKey(), entry.getValue().toString()));
+        @SuppressWarnings("unchecked") // Cast is safe because we control the metadata structure!
+        Map<String, Object> addProps = (Map<String, Object>) metadata.get(ADDITIONAL_PROPERTIES.getValue());
+        if (addProps != null) {
+            addProps.forEach(searchResultDto::putAdditionalProperty);
+        }
 
         return searchResultDto;
     }

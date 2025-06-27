@@ -4,10 +4,13 @@ import de.uol.pgdoener.civicsage.api.FilesApi;
 import de.uol.pgdoener.civicsage.business.dto.UploadFile200ResponseDto;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
+import de.uol.pgdoener.civicsage.source.FileHashingService;
+import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +33,10 @@ public class FilesController implements FilesApi {
 
     private final StorageService storageService;
     private final SourceService sourceService;
+    private final FileHashingService fileHashingService;
+
+    @Value("${spring.ai.openai.embedding.options.model}")
+    private String modelID;
 
     @Override
     public ResponseEntity<Resource> downloadFile(UUID id) {
@@ -54,19 +62,18 @@ public class FilesController implements FilesApi {
 
     @Override
     public ResponseEntity<UploadFile200ResponseDto> uploadFile(MultipartFile file) {
-        UUID objectID;
+        UUID objectID = storeInStorage(file);
         try {
-            objectID = storeInStorage(file);
+            String hash = fileHashingService.hash(file.getInputStream());
+            sourceService.verifyFileHashNotIndexed(hash);
+            sourceService.save(new FileSource(objectID, file.getOriginalFilename(), hash, List.of(modelID)));
             log.info("File {} uploaded successfully with ID {}", file.getOriginalFilename(), objectID);
-        } catch (ReadFileException | StorageException e) {
-            log.error("Error uploading file {}", file.getOriginalFilename(), e);
-            return ResponseEntity.internalServerError().build();
+            UploadFile200ResponseDto response = new UploadFile200ResponseDto();
+            response.setId(objectID);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            throw new ReadFileException("Could not read file.", e);
         }
-
-        UploadFile200ResponseDto response = new UploadFile200ResponseDto();
-        response.setId(objectID);
-        return ResponseEntity.ok(response);
-
     }
 
     private UUID storeInStorage(MultipartFile file) {
