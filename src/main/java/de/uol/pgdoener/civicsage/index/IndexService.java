@@ -46,7 +46,7 @@ public class IndexService {
     // ######
 
     public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
-        UUID fileRef = indexFilesRequestInnerDto.getFileRef();
+        UUID fileRef = indexFilesRequestInnerDto.getFileId();
         Objects.requireNonNull(fileRef);
         String fileName = indexFilesRequestInnerDto.getName();
         Objects.requireNonNull(fileName);
