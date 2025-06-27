@@ -28,23 +28,29 @@ public class SearchResultMapper {
         searchResultDto.setText(document.getText());
 
         Map<String, Object> metadata = document.getMetadata();
-        Object fileName = metadata.get(FILE_NAME);
-        Object url = metadata.get(URL);
+        Object fileName = metadata.get(FILE_NAME.getValue());
+        Object url = metadata.get(URL.getValue());
 
         if (fileName instanceof String file) {
             searchResultDto.fileName(file);
-            if (metadata.get(FILE_ID) instanceof String fileIdString)
+            if (metadata.get(FILE_ID.getValue()) instanceof String fileIdString)
                 searchResultDto.fileId(UUID.fromString(fileIdString));
-            if (metadata.get(TITLE) instanceof String t)
+            if (metadata.get(TITLE.getValue()) instanceof String t)
                 searchResultDto.title(t);
             else
                 searchResultDto.title(constructTitleForFile(file));
         } else if (url instanceof String u) {
             searchResultDto.url(u);
-            if (metadata.get(TITLE) instanceof String t)
+            if (metadata.get(TITLE.getValue()) instanceof String t)
                 searchResultDto.title(t);
         } else {
             log.error("Document is neither a file nor a url: {}", document);
+        }
+
+        @SuppressWarnings("unchecked") // Cast is safe because we control the metadata structure!
+        Map<String, Object> addProps = (Map<String, Object>) metadata.get(ADDITIONAL_PROPERTIES.getValue());
+        if (addProps != null) {
+            addProps.forEach(searchResultDto::putAdditionalProperty);
         }
 
         return searchResultDto;

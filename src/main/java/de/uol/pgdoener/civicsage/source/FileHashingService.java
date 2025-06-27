@@ -4,9 +4,9 @@ import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.source.exception.HashingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,9 +18,9 @@ public class FileHashingService {
 
     private static final String ALGORITHM = "SHA-256";
 
-    public String hash(MultipartFile file) {
+    public String hash(InputStream inputStream) {
         try {
-            return hashInternal(file);
+            return hashInternal(inputStream);
         } catch (NoSuchAlgorithmException e) {
             log.error("Error while hashing file: ", e);
             throw new HashingException("Hashing algorithm exception", e);
@@ -30,9 +30,9 @@ public class FileHashingService {
         }
     }
 
-    private String hashInternal(MultipartFile file) throws NoSuchAlgorithmException, IOException {
+    private String hashInternal(InputStream inputStream) throws NoSuchAlgorithmException, IOException {
         MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
-        try (var digestIn = new DigestInputStream(file.getInputStream(), digest)) {
+        try (var digestIn = new DigestInputStream(inputStream, digest)) {
             digestIn.readAllBytes();
         }
         String hash = HexFormat.of().formatHex(digest.digest());
