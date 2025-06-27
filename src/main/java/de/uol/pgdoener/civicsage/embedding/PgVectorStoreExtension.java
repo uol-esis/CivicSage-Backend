@@ -38,7 +38,7 @@ public class PgVectorStoreExtension implements VectorStoreExtension {
                         .build(),
                 documentIds.toArray()
         );
-        log.debug("Retrieved documents: {}", documents);
+        log.debug("Retrieved {} documents", documents.size());
         return documents;
     }
 

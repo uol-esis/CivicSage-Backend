@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.completion.DocumentAdvisor;
 import de.uol.pgdoener.civicsage.embedding.VectorStoreExtension;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ public class ChatConfig {
     public ChatClient documentChatClient() {
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
+                        SimpleLoggerAdvisor.builder().build(),
                         DocumentAdvisor.builder().vectorStoreExtension(vectorStoreExtension).build()
                 )
                 .build();
