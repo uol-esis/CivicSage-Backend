@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.embedding;
 
+import de.uol.pgdoener.civicsage.embedding.exception.DocumentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
@@ -39,6 +40,9 @@ public class PgVectorStoreExtension implements VectorStoreExtension {
                 documentIds.toArray()
         );
         log.debug("Retrieved {} documents", documents.size());
+
+        if (documents.size() != documentIds.size())
+            throw new DocumentNotFoundException("Could not find all requested documents");
         return documents;
     }
 

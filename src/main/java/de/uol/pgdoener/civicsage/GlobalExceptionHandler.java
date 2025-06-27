@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage;
 
+import de.uol.pgdoener.civicsage.embedding.exception.DocumentNotFoundException;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
@@ -25,6 +26,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<Object> handleDocumentNotFoundException(DocumentNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
+        log.debug("DocumentNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(StorageException.class)
     public ResponseEntity<Object> handleStorageException(StorageException ex) {

@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.completion;
 import de.uol.pgdoener.civicsage.embedding.VectorStoreExtension;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Builder
 @RequiredArgsConstructor
 public class DocumentAdvisor implements BaseAdvisor {
@@ -32,6 +34,11 @@ public class DocumentAdvisor implements BaseAdvisor {
         @SuppressWarnings("unchecked")
         List<UUID> documentIds = (List<UUID>) context.get(DOCUMENT_IDS_CONTEXT_KEY);
 
+        if (documentIds.isEmpty()) {
+            log.info("No documents provided");
+            return chatClientRequest;
+        }
+
         List<Document> documents = vectorStoreExtension.getById(documentIds);
 
         String documentsText = documents.stream()
@@ -44,6 +51,7 @@ public class DocumentAdvisor implements BaseAdvisor {
             return systemMessage.mutate().text(systemMessageText).build();
         });
 
+        log.info("Adding contents of documents to prompt");
         return new ChatClientRequest(prompt, context);
     }
 
