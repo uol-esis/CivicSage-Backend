@@ -24,6 +24,7 @@ public class SearchResultMapper {
 
     public SearchResultDto toDto(@NonNull Document document) {
         SearchResultDto searchResultDto = new SearchResultDto();
+        searchResultDto.documentId(UUID.fromString(document.getId()));
         searchResultDto.setScore(document.getScore());
         searchResultDto.setText(document.getText());
 
