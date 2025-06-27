@@ -62,10 +62,10 @@ public class FilesController implements FilesApi {
 
     @Override
     public ResponseEntity<UploadFile200ResponseDto> uploadFile(MultipartFile file) {
-        UUID objectID = storeInStorage(file);
         try {
             String hash = fileHashingService.hash(file.getInputStream());
             sourceService.verifyFileHashNotIndexed(hash);
+            UUID objectID = storeInStorage(file);
             sourceService.save(new FileSource(objectID, file.getOriginalFilename(), hash, List.of(modelID)));
             log.info("File {} uploaded successfully with ID {}", file.getOriginalFilename(), objectID);
             UploadFile200ResponseDto response = new UploadFile200ResponseDto();
