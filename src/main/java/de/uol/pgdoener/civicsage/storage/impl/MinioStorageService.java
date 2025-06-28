@@ -22,7 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MinioStorageService implements StorageService {
 
-    @Value("${s3.bucket.name}")
+    @Value("${civicsage.s3.bucket.name}")
     private String bucketName;
 
     private final MinioClient minioClient;

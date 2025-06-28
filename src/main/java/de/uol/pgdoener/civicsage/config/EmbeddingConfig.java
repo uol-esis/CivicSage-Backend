@@ -16,7 +16,7 @@ public class EmbeddingConfig {
 
     private static final double CONTEXT_WINDOW_FILLED_RATIO = 0.85;
 
-    @Value("${civicsage.embedding.model.context-length}")
+    @Value("${civicsage.ai.embedding.model.context-length}")
     private int embeddingModelContextLength;
 
     // https://docs.spring.io/spring-ai/reference/api/vectordbs.html#_default_implementation
