@@ -45,7 +45,7 @@ public class BootstrapService {
         } catch (NoSuchFileException e) {
             log.error("Failed to open directory for local indexing. Probably the indexing directory has not been set up correctly. Check for typos in the specified path.");
         } catch (AccessDeniedException e) {
-            log.debug("Failed to open directory for local indexing. You might want to check if the permissions are correct. If you are using a docker container, note that the user inside the container likely differs from the user on the host.");
+            log.error("Failed to open directory for local indexing. You might want to check if the permissions are correct. If you are using a docker container, note that the user inside the container likely differs from the user on the host.");
         } catch (IOException e) {
             log.debug("Failed to index local files: Reason: ", e);
         }
