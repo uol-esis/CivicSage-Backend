@@ -33,6 +33,7 @@ public class FilterExpressionValidator {
         try {
             expression = new FilterExpressionTextParser().parse(filterString);
         } catch (Exception e) {
+            log.debug("", e);
             throw new FilterExpressionException("Could not parse filter expression", e);
         }
 
@@ -43,10 +44,17 @@ public class FilterExpressionValidator {
 
     private boolean isValid(Filter.Expression expression) {
         return switch (expression.type()) {
-            case AND, OR ->
-                    isValid((Filter.Expression) expression.left()) && isValid((Filter.Expression) expression.right());
+            case AND, OR -> isValid(expression.left()) && isValid(expression.right());
             case EQ, GTE, GT, LT, IN, NIN, LTE, NOT, NE -> isValidMetadataKey(((Filter.Key) expression.left()).key());
         };
+    }
+
+    private boolean isValid(Filter.Operand operand) {
+        if (operand instanceof Filter.Expression expression)
+            return isValid(expression);
+        if (operand instanceof Filter.Group(Filter.Expression content))
+            return isValid(content);
+        throw new IllegalStateException("Unsupported operand"); // this should not happen, if the spring implementation does not change
     }
 
     private boolean isValidMetadataKey(String key) {
