@@ -14,7 +14,7 @@ public class BootstrapProperties {
     @lombok.Data
     public static class Data {
         /**
-         * Path to the Civicsage bootstrap file.
+         * Path to the Civicsage bootstrap files.
          */
         private Path directory;
 

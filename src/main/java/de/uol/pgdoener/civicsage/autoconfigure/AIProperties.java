@@ -18,7 +18,7 @@ public class AIProperties {
         @Data
         public static class Model {
             /**
-             * The context length in tokens.
+             * The context length for the chat model.
              */
             private Integer contextLength = 8000;
         }
@@ -32,7 +32,7 @@ public class AIProperties {
         @Data
         public static class Model {
             /**
-             * The context length in tokens.
+             * The context length for the embedding model.
              */
             private Integer contextLength = 256;
         }
