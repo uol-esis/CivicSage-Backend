@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -22,7 +23,7 @@ public class PgVectorStoreExtension implements VectorStoreExtension {
     private String tableName;
 
     public PgVectorStoreExtension(PgVectorStore pgVectorStore) {
-        var optTemplate = pgVectorStore.<JdbcTemplate>getNativeClient();
+        Optional<JdbcTemplate> optTemplate = pgVectorStore.getNativeClient();
         template = optTemplate.orElseThrow(() -> new RuntimeException("Could not get native client from PgVectorStore"));
     }
 
