@@ -1,8 +1,8 @@
 package de.uol.pgdoener.civicsage.config;
 
 
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import de.uol.pgdoener.civicsage.autoconfigure.SecurityProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -15,12 +15,11 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
-@Setter
 @Configuration
-@ConfigurationProperties(prefix = "civicsage.security")
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private List<String> allowedOrigins;
+    private final SecurityProperties securityProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,7 +32,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(allowedOrigins);
+        config.setAllowedOrigins(securityProperties.getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

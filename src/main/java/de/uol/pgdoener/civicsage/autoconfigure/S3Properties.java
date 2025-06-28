@@ -1,23 +1,37 @@
 package de.uol.pgdoener.civicsage.autoconfigure;
 
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Getter
-@Setter
-@Component
+@Data
 @ConfigurationProperties(prefix = "civicsage.s3")
 public class S3Properties {
 
+    /**
+     * The URL of the S3 service.
+     */
     private String url;
+    /**
+     * The access key for the S3 service.
+     */
     private String accessKey;
+    /**
+     * The secret key for the S3 service.
+     */
     private String secretKey;
-    private String region;
-    private BucketInfo bucket;
+    /**
+     * The region for the S3 service.
+     */
+    private String region = "garage";
 
-    record BucketInfo(String name) {
+    private Bucket bucket;
+
+    @Data
+    public static class Bucket {
+        /**
+         * The name of the bucket.
+         */
+        private String name = "civicsage-bucket";
     }
 }
