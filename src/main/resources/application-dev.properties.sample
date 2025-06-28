@@ -8,3 +8,4 @@ s3.access.id=<Key ID>
 s3.access.secret=<Secret key>
 s3.bucket.name=civicsage-bucket
 s3.region=garage
+civicsage.startup.data.directory=./data

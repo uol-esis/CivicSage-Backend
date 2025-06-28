@@ -27,8 +27,14 @@ import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 public class DocumentReaderFactory {
 
     public DocumentReader create(@NonNull InputStream file, @NonNull String fileEnding, @NonNull String fileName) {
-        // FIXME: InputStreamResource is does not work with already read InputStreams
-        Resource resource = new InputStreamResource(file);
+        // FIXME: InputStreamResource is not suitable for some readers (PDF Reader for example) as they expect more
+        // information from a Resource - e.g. the filename
+        Resource resource = new InputStreamResource(file) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
 
         return switch (fileEnding) {
             case "txt" -> {

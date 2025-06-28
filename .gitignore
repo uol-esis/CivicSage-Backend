@@ -5,7 +5,9 @@ target/
 !**/src/test/**/target/
 
 application-*.properties
+!application-docker.properties
 *.env
+data/
 
 ### STS ###
 .apt_generated
