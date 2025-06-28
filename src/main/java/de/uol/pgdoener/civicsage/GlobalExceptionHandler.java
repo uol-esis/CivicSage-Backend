@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.embedding.exception.DocumentNotFoundException;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
+import de.uol.pgdoener.civicsage.search.exception.FilterExpressionException;
 import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
 import de.uol.pgdoener.civicsage.source.exception.HashingException;
 import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
@@ -26,6 +27,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(FilterExpressionException.class)
+    public ResponseEntity<Object> handleFilterExpressionException(FilterExpressionException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("FilterExpressionException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(DocumentNotFoundException.class)
     public ResponseEntity<Object> handleDocumentNotFoundException(DocumentNotFoundException ex) {

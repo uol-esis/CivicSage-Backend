@@ -27,6 +27,7 @@ public class SearchService {
 
     private final EmbeddingService embeddingService;
     private final SearchResultMapper searchResultMapper;
+    private final FilterExpressionValidator filterExpressionValidator;
 
     public List<SearchResultDto> search(SearchQueryDto query, Optional<Integer> pageNumber, Optional<Integer> pageSize) {
         log.info("Searching for documents with query {}", query);
@@ -35,7 +36,10 @@ public class SearchService {
         int resultsToFetch = calculateResultsToFetch(pNumber, pSize);
         log.debug("topK = {}", resultsToFetch);
 
-        SearchRequest searchRequest = buildSearchRequest(query, resultsToFetch);
+        Optional<String> filterString = query.getFilterExpression();
+        filterString.ifPresent(filterExpressionValidator::validate);
+
+        SearchRequest searchRequest = buildSearchRequest(query.getQuery(), filterString, resultsToFetch);
         List<Document> documents = embeddingService.search(searchRequest);
 
         if (documents == null || documents.isEmpty()) {
@@ -63,11 +67,12 @@ public class SearchService {
         return pagesToFetch * pageSize;
     }
 
-    private SearchRequest buildSearchRequest(SearchQueryDto query, int resultsToFetch) {
-        return SearchRequest.builder()
-                .query(query.getQuery())
-                .topK(resultsToFetch)
-                .build();
+    private SearchRequest buildSearchRequest(String query, Optional<String> filterString, int resultsToFetch) {
+        SearchRequest.Builder builder = SearchRequest.builder()
+                .query(query)
+                .topK(resultsToFetch);
+        filterString.ifPresent(builder::filterExpression);
+        return builder.build();
     }
 
     private List<Document> applyPagination(List<Document> documents, int pageNumber, int pageSize) {
