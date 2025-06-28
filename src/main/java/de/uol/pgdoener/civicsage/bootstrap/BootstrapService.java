@@ -3,7 +3,6 @@ package de.uol.pgdoener.civicsage.bootstrap;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
 import de.uol.pgdoener.civicsage.index.document.MetadataKeys;
-import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.storage.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,10 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.UUID;
 
 @Slf4j
@@ -30,11 +26,11 @@ public class BootstrapService {
     public void indexDirectory(String dirPath) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dirPath))) {
             for (Path entry : stream) {
+                File f = entry.toFile();
                 try {
-                    File f = entry.toFile();
-                    if (f.isDirectory()) { // subdirectories are ignored
+                    if (f.isDirectory()) // subdirectories are ignored
                         continue;
-                    }
+
                     UUID fileId = fileService.storeFile(() -> new FileInputStream(f), f.getName());
 
                     IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto(fileId, f.getName());
@@ -43,11 +39,15 @@ public class BootstrapService {
                     request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
                     indexService.indexFile(request);
                 } catch (RuntimeException e) {
-                    log.warn("Failed to read file from path", e);
+                    log.debug("Failed to read file '{}' from local directory. Reason: {}", f.getName(), e.getMessage());
                 }
             }
+        } catch (NoSuchFileException e) {
+            log.debug("Failed to open directory for local indexing. Probably the indexing directory has not been set up correctly. Check for typos in the specified path.");
+        } catch (AccessDeniedException e) {
+            log.debug("Failed to open directory for local indexing. You might want to check if the permissions are correct. If you are using a docker container, note that the user inside the container likely differs from the user on the host.");
         } catch (IOException e) {
-            throw new ReadFileException("Failed to read file from path", e);
+            log.debug("Failed to index local files: Reason: ", e);
         }
     }
 }

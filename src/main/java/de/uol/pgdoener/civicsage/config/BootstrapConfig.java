@@ -12,16 +12,22 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class BootstrapConfig {
 
-    @Value("${civicsage.startup.data.directory}")
+    @Value("${civicsage.startup.data.directory:#{null}}")
     private String inputDirectory;
 
     private final BootstrapService bootstrapService;
 
     @PostConstruct
     public void init() {
-        log.info("Indexing files from directory {}", inputDirectory);
-        bootstrapService.indexDirectory(inputDirectory);
-        log.info("Indexing finished");
+        if (inputDirectory == null) {
+            log.debug("Indexing local files disabled");
+            return;
+        }
+        new Thread(() -> {
+            log.info("Indexing local files from directory {}", inputDirectory);
+            bootstrapService.indexDirectory(inputDirectory);
+            log.info("Local indexing finished.");
+        }, "local indexing").start();
     }
 
 }
