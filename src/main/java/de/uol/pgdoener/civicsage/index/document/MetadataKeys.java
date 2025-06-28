@@ -14,7 +14,8 @@ public enum MetadataKeys {
     END_PAGE("end_page_number"),
     TITLE("title"),
     URL("url"),
-    ADDITIONAL_PROPERTIES("additional_properties");
+    ADDITIONAL_PROPERTIES("additional_properties"),
+    STARTUP_DOCUMENT("startup_document");
 
     private final String value;
 
