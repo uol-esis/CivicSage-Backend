@@ -45,7 +45,8 @@ public class FilterExpressionValidator {
     private boolean isValid(Filter.Expression expression) {
         return switch (expression.type()) {
             case AND, OR -> isValid(expression.left()) && isValid(expression.right());
-            case EQ, GTE, GT, LT, IN, NIN, LTE, NOT, NE -> isValidMetadataKey(((Filter.Key) expression.left()).key());
+            case EQ, GTE, GT, LT, IN, NIN, LTE, NE -> isValidMetadataKey(((Filter.Key) expression.left()).key());
+            case NOT -> isValid(expression.left());
         };
     }
 
