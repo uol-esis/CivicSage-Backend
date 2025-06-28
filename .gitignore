@@ -5,7 +5,9 @@ target/
 !**/src/test/**/target/
 
 application-*.yaml
+!application-docker.yaml
 *.env
+data/
 
 ### STS ###
 .apt_generated

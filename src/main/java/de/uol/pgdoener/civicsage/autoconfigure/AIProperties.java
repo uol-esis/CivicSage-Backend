@@ -2,18 +2,22 @@ package de.uol.pgdoener.civicsage.autoconfigure;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
 @ConfigurationProperties(prefix = "civicsage.ai")
 public class AIProperties {
 
-    private Chat chat;
-    private Embedding embedding;
+    @NestedConfigurationProperty
+    private Chat chat = new Chat();
+    @NestedConfigurationProperty
+    private Embedding embedding = new Embedding();
 
     @Data
     public static class Chat {
 
-        private Model model;
+        @NestedConfigurationProperty
+        private Model model = new Model();
 
         @Data
         public static class Model {
@@ -27,7 +31,8 @@ public class AIProperties {
     @Data
     public static class Embedding {
 
-        private Model model;
+        @NestedConfigurationProperty
+        private Model model = new Model();
 
         @Data
         public static class Model {

@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.autoconfigure;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @Data
 @ConfigurationProperties(prefix = "civicsage.s3")
@@ -25,7 +26,8 @@ public class S3Properties {
      */
     private String region = "garage";
 
-    private Bucket bucket;
+    @NestedConfigurationProperty
+    private Bucket bucket = new Bucket();
 
     @Data
     public static class Bucket {
