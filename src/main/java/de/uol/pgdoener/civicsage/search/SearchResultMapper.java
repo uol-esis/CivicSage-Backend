@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.mapper;
+package de.uol.pgdoener.civicsage.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
 import lombok.NonNull;
