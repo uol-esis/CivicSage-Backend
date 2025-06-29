@@ -1,29 +1,23 @@
 package de.uol.pgdoener.civicsage.config;
 
+import de.uol.pgdoener.civicsage.autoconfigure.S3Properties;
 import io.minio.MinioClient;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class S3Config {
 
-    @Value("${s3.url}")
-    private String url;
-    @Value("${s3.access.id}")
-    private String accessKey;
-    @Value("${s3.access.secret}")
-    private String accessSecret;
-    @Value("${s3.region}")
-    private String region;
-
+    private final S3Properties s3Properties;
 
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint(url)
-                .credentials(accessKey, accessSecret)
-                .region(region)
+                .endpoint(s3Properties.getUrl())
+                .credentials(s3Properties.getAccessKey(), s3Properties.getSecretKey())
+                .region(s3Properties.getRegion())
                 .build();
     }
 }

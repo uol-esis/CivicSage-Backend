@@ -1,0 +1,28 @@
+logging:
+  level:
+    de:
+      uol:
+        pgdoener:
+          civicsage: DEBUG
+    org:
+      springframework:
+        ai:
+          chat:
+            client:
+              advisor: DEBUG
+spring:
+  datasource:
+    username: example
+    password: example
+    url: jdbc:postgresql://localhost:5432/example
+civicsage:
+  bootstrap:
+    data:
+      directory: ./data
+  s3:
+    url: http://localhost:3900
+    access-key: <Key ID>
+    secret-key: <Secret key>
+    region: garage
+    bucket:
+      name: civicsage-bucket
