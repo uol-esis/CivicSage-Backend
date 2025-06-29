@@ -21,8 +21,8 @@ civicsage:
       directory: ./data
   s3:
     url: http://localhost:3900
-    access-id: <Key ID>
-    access-secret: <Secret key>
+    access-key: <Key ID>
+    secret-key: <Secret key>
     region: garage
     bucket:
       name: civicsage-bucket
