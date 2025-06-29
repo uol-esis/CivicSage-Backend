@@ -20,6 +20,9 @@ FROM eclipse-temurin:21-jre-alpine
 # Set work directory
 WORKDIR /opt/pg
 
+# Create directory for local files
+RUN mkdir /data
+
 # Create a group and user for better security
 RUN addgroup --system pg && \
     adduser --system --no-create-home --ingroup pg pg && \
@@ -34,4 +37,5 @@ USER pg
 EXPOSE 8080
 
 # Run the application
+ENV SPRING_PROFILES_ACTIVE=docker
 ENTRYPOINT ["java", "-jar", "app.jar"]

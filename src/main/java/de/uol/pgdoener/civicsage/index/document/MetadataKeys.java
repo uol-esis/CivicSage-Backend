@@ -14,7 +14,8 @@ public enum MetadataKeys {
     END_PAGE("end_page_number", false),
     TITLE("title", true),
     URL("url", true),
-    ADDITIONAL_PROPERTIES("additional_properties", false); // this is marked as internal, but is available in filter expression using "additional_properties."
+    ADDITIONAL_PROPERTIES("additional_properties", false), // this is marked as internal, but is available in filter expression using "additional_properties."
+    STARTUP_DOCUMENT("startup_document", false);
 
     /**
      * The key used in the metadata map stored in the {@link org.springframework.ai.vectorstore.VectorStore}
