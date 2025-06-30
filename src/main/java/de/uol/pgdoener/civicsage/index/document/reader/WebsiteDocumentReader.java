@@ -28,7 +28,7 @@ public class WebsiteDocumentReader implements DocumentReader {
                 .build();
         List<Document> documents = new JsoupDocumentReader(url, config).read();
 
-        if (!documents.isEmpty()) {
+        if (areValid(documents)) {
             return documents;
         }
 
@@ -37,6 +37,14 @@ public class WebsiteDocumentReader implements DocumentReader {
                 .additionalMetadata(additionalMetadata)
                 .build();
         return new JsoupDocumentReader(url, config).read();
+    }
+
+    private boolean areValid(List<Document> documents) {
+        return documents.stream()
+                .anyMatch(d -> {
+                    String text = d.getText();
+                    return text != null && !text.isBlank();
+                });
     }
 
 }
