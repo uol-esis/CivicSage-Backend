@@ -62,9 +62,10 @@ public class DocumentReaderFactory {
                     @NonNull
                     @Override
                     public List<Document> read() {
-                        return super.read().stream()
-                                .peek(d -> d.getMetadata().put(FILE_NAME.getValue(), fileName))
+                        List<Document> documents = super.read().stream()
                                 .toList();
+                        documents.forEach(d -> d.getMetadata().put(FILE_NAME.getValue(), fileName));
+                        return documents;
                     }
                 };
             }
