@@ -21,7 +21,7 @@ public class WebsiteSource {
     @Column(columnDefinition = "TEXT", unique = true)
     private String url;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> models;
 
 }

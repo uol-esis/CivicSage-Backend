@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.bootstrap;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
 import de.uol.pgdoener.civicsage.index.document.MetadataKeys;
+import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
 import de.uol.pgdoener.civicsage.storage.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +39,10 @@ public class BootstrapService {
                     // Maybe a dedicated metadata entry would be better... Or no marking necessary at all?
                     request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
                     indexService.indexFile(request);
+                } catch (SourceCollisionException e) {
+                    log.debug("File {} already indexed", f.getName());
                 } catch (RuntimeException e) {
-                    log.debug("Failed to read file '{}' from local directory. Reason: {}", f.getName(), e.getMessage());
+                    log.error("Failed to read file '{}' from local directory. Reason: {}", f.getName(), e.getMessage(), e);
                 }
             }
         } catch (NoSuchFileException e) {
