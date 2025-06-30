@@ -1,12 +1,12 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
-import de.uol.pgdoener.civicsage.api.FeedbackApi;
+import de.uol.pgdoener.civicsage.api.FeedbackApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.FeedbackDto;
 import de.uol.pgdoener.civicsage.feedback.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
@@ -14,9 +14,9 @@ import java.util.UUID;
  * More or less exact copy of FeedbackController implemented in TH1.
  */
 @Slf4j
-@Controller
+@Component
 @RequiredArgsConstructor
-public class FeedbackController implements FeedbackApi {
+public class FeedbackController implements FeedbackApiDelegate {
 
     private final FeedbackService feedbackService;
 
