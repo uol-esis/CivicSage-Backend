@@ -33,6 +33,10 @@ public class SourceService {
         return optionalFileSource.get();
     }
 
+    public Optional<WebsiteSource> getWebsiteSourceByUrl(String url) {
+        return websiteSourceRepository.findByUrl(url);
+    }
+
     public void verifyWebsiteNotIndexed(String url) {
         if (websiteSourceRepository.existsByUrl(url)) {
             throw new SourceCollisionException("Website is already indexed");

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -83,7 +84,12 @@ public class IndexService {
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl();
         url = normalizeURL(url);
-        sourceService.verifyWebsiteNotIndexed(url);
+
+        WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
+                .orElse(new WebsiteSource(null, url, new ArrayList<>()));
+        if (websiteSource.getModels().contains(modelID)) {
+            throw new SourceCollisionException("Website is already indexed for current model!");
+        }
 
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
@@ -91,8 +97,11 @@ public class IndexService {
         documents = postProcessDocuments(documents);
         documents.forEach(document ->
                 document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), indexWebsiteRequestDto.getAdditionalProperties()));
+
+        websiteSource.getModels().add(modelID);
+        sourceService.save(websiteSource);
+
         embeddingService.save(documents);
-        sourceService.save(new WebsiteSource(null, url, List.of(modelID)));
     }
 
     public String normalizeURL(String url) {
