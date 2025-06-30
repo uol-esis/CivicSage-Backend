@@ -6,8 +6,10 @@ import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.source.FileHashingService;
+import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.source.WebsiteSource;
+import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
 import de.uol.pgdoener.civicsage.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +51,13 @@ public class IndexService {
         String fileName = indexFilesRequestInnerDto.getName();
         Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties();
 
+        // Verify that the file is not already indexed for the current model
+        FileSource fileSource = sourceService.getFileSourceById(fileRef);
+        if (fileSource.getModels().contains(modelID)) {
+            throw new SourceCollisionException("File is already indexed for current model!");
+        }
 
+        // Read the file from storage and process it
         InputStream file = storageService.load(fileRef).orElseThrow(() -> new StorageException("Could not load file from storage"));
         List<Document> documents = documentReaderService.read(file, fileName);
         log.debug("Read {} documents from file: {}", documents.size(), fileName);
@@ -60,6 +68,9 @@ public class IndexService {
             document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalMetadata);
         });
 
+        // Update the file source with the new model ID
+        fileSource.getModels().add(modelID);
+        sourceService.save(fileSource);
 
         embeddingService.save(documents);
     }
