@@ -23,8 +23,8 @@ public class BootstrapService {
     private final IndexService indexService;
 
 
-    public void indexDirectory(String dirPath) {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(dirPath))) {
+    public void indexDirectory(Path dir) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
             for (Path entry : stream) {
                 File f = entry.toFile();
                 try {

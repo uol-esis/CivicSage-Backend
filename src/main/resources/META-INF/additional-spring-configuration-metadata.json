@@ -1,0 +1,13 @@
+{
+    "hints": [
+        {
+            "name": "civicsage.s3.region",
+            "values": [
+                {
+                    "value": "garage",
+                    "description": "Default region for Garage ObjectStore."
+                }
+            ]
+        }
+    ]
+}
