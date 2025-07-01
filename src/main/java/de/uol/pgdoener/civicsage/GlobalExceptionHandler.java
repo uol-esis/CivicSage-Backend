@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReadUrlException.class)
     public ResponseEntity<Object> handleReadUrlException(ReadUrlException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-        log.debug("ReadUrlException: {}", ex.getMessage());
+        log.debug("ReadUrlException", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
     }
 
