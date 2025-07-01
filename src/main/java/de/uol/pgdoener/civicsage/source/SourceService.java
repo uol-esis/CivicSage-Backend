@@ -33,6 +33,10 @@ public class SourceService {
         return optionalFileSource.get();
     }
 
+    public Optional<FileSource> getFileSourceByHash(String hash) {
+        return fileSourceRepository.getFileSourceByHash(hash);
+    }
+
     public Optional<WebsiteSource> getWebsiteSourceByUrl(String url) {
         return websiteSourceRepository.findByUrl(url);
     }
