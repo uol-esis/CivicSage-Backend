@@ -41,7 +41,7 @@ public class WebsiteDocumentReader implements DocumentReader {
 
     private boolean areValid(List<Document> documents) {
         return documents.stream()
-                .anyMatch(d -> {
+                .allMatch(d -> {
                     String text = d.getText();
                     return text != null && !text.isBlank();
                 });
