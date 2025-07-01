@@ -2,8 +2,10 @@ package de.uol.pgdoener.civicsage.index.document;
 
 import de.uol.pgdoener.civicsage.index.document.reader.PdfDocumentReader;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.TextReader;
@@ -14,9 +16,13 @@ import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfi
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URLConnection;
 import java.util.List;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
@@ -76,7 +82,18 @@ public class DocumentReaderFactory {
         JsoupDocumentReaderConfig config = JsoupDocumentReaderConfig.builder()
                 .additionalMetadata(URL.getValue(), url)
                 .build();
-        return new JsoupDocumentReader(url, config);
+        try {
+            Resource resource = new UrlResource(url) {
+                @Override
+                protected void customizeConnection(@NotNull URLConnection con) throws IOException {
+                    super.customizeConnection(con);
+                    con.addRequestProperty("User-Agent", "CivicSage Document Reader");
+                }
+            };
+            return new JsoupDocumentReader(resource, config);
+        } catch (MalformedURLException e) {
+            throw new ReadUrlException("Invalid URL: " + url, e);
+        }
     }
 
 }
