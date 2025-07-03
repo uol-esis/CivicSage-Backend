@@ -21,11 +21,24 @@ public class BootstrapConfig {
             log.debug("Indexing local files disabled");
             return;
         }
-        new Thread(() -> {
+        Thread directoryIndexer = new Thread(() -> {
             log.info("Indexing local files from directory {}", bootstrapProperties.getData().getDirectory());
             bootstrapService.indexDirectory(bootstrapProperties.getData().getDirectory());
             log.info("Local indexing finished.");
-        }, "local indexing").start();
+        }, "local indexing");
+        directoryIndexer.start();
+
+        Thread newModelReIndexer = new Thread(() -> {
+            try {
+                directoryIndexer.join();
+                log.info("Reindexing sources with new model");
+                bootstrapService.reindexSources();
+                log.info("Reindexing sources finished.");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        newModelReIndexer.start();
     }
 
 }
