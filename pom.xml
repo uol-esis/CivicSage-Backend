@@ -184,11 +184,10 @@
                                 <configPackage>de.uol.pgdoener.civicsage.config</configPackage>
                                 <enumUnknownDefaultCase>true</enumUnknownDefaultCase>
                                 <useSpringBoot3>true</useSpringBoot3>
-                                <interfaceOnly>true</interfaceOnly>
+                                <delegatePattern>true</delegatePattern>
                                 <booleanGetterPrefix>is</booleanGetterPrefix>
                                 <useOptional>true</useOptional>
                                 <useSealed>true</useSealed>
-                                <requestMappingMode>api_interface</requestMappingMode>
                             </configOptions>
                         </configuration>
                     </execution>

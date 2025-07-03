@@ -1,6 +1,6 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
-import de.uol.pgdoener.civicsage.api.FilesApi;
+import de.uol.pgdoener.civicsage.api.FilesApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.UploadFile200ResponseDto;
 import de.uol.pgdoener.civicsage.storage.FileService;
 import lombok.RequiredArgsConstructor;
@@ -10,16 +10,16 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
-@Controller
+@Component
 @RequiredArgsConstructor
-public class FilesController implements FilesApi {
+public class FilesController implements FilesApiDelegate {
 
     private final FileService fileService;
 

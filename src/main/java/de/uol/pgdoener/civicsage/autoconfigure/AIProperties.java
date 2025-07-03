@@ -14,6 +14,7 @@ public class AIProperties {
     public static class Chat {
 
         private Model model = new Model();
+        private int maxEmbeddings = 10;
 
         @Data
         public static class Model {

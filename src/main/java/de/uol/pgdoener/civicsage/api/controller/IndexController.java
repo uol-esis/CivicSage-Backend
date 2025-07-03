@@ -1,20 +1,20 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
-import de.uol.pgdoener.civicsage.api.IndexApi;
+import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.index.IndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Slf4j
-@Controller
+@Component
 @RequiredArgsConstructor
-public class IndexController implements IndexApi {
+public class IndexController implements IndexApiDelegate {
 
     private final IndexService indexService;
 
