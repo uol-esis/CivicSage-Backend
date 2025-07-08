@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -21,7 +22,7 @@ public class DocumentReaderService {
 
     private final DocumentReaderFactory documentReaderFactory;
 
-    public List<Document> read(@NonNull InputStream file, @NonNull String fileName) {
+    public List<Document> read(@NonNull Resource file, @NonNull String fileName) {
         if (fileName.isBlank())
             throw new ReadFileException("File name is empty or null");
         final String fileEnding = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();

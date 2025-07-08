@@ -11,11 +11,9 @@ import org.springframework.ai.reader.TextReader;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
 import java.util.List;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_NAME;
@@ -25,20 +23,11 @@ import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.URL;
 @Component
 public class DocumentReaderFactory {
 
-    public DocumentReader create(@NonNull InputStream file, @NonNull String fileEnding, @NonNull String fileName) {
-        // FIXME: InputStreamResource is not suitable for some readers (PDF Reader for example) as they expect more
-        // information from a Resource - e.g. the filename
-        Resource resource = new InputStreamResource(file) {
-            @Override
-            public String getFilename() {
-                return fileName;
-            }
-        };
-
+    public DocumentReader create(@NonNull Resource file, @NonNull String fileEnding, @NonNull String fileName) {
         return switch (fileEnding) {
             case "txt" -> {
                 log.info("Indexing file as plain text file");
-                TextReader reader = new TextReader(resource);
+                TextReader reader = new TextReader(file);
                 reader.getCustomMetadata().put(FILE_NAME.getValue(), fileName);
                 yield reader;
             }
@@ -46,18 +35,18 @@ public class DocumentReaderFactory {
                 log.info("Indexing file as Markdown file");
                 MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.defaultConfig();
                 config.additionalMetadata.put(FILE_NAME.getValue(), fileName);
-                yield new MarkdownDocumentReader(resource, config);
+                yield new MarkdownDocumentReader(file, config);
             }
             case "pdf" -> {
                 log.info("Indexing file as PDF file");
-                yield new PdfDocumentReader(resource);
+                yield new PdfDocumentReader(file);
             }
             // https://tika.apache.org/3.1.0/formats.html
             case "odt", "odp", "ods", // LibreOffice
                  "doc", "docx", "pptx", "xls", "xlsx" // Microsoft Office
                     -> {
                 log.info("Indexing file with Tika");
-                yield new TikaDocumentReader(resource) {
+                yield new TikaDocumentReader(file) {
                     @NonNull
                     @Override
                     public List<Document> read() {
