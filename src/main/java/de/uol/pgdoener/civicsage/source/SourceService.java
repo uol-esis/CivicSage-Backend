@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,6 +52,14 @@ public class SourceService {
         if (fileSourceRepository.existsByHash(hash)) {
             throw new SourceCollisionException("File is already indexed");
         }
+    }
+
+    public List<FileSource> getFileSourcesNotIndexedWith(String modelId) {
+        return fileSourceRepository.getFileSourceByModelsNotContaining(modelId);
+    }
+
+    public List<WebsiteSource> getWebsiteSourcesNotIndexedWith(String modelId) {
+        return websiteSourceRepository.getWebsiteSourceByModelsNotContaining(modelId);
     }
 
 }
