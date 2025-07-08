@@ -5,6 +5,7 @@ import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
@@ -143,10 +144,16 @@ public class IndexService {
         documents = semanticSplitterService.process(documents);
         log.debug("Website split into {} semantic chunks", documents.size());
 
+        final int numDocumentsBeforeSplitting = documents.size();
         documents = documents.stream()
                 .flatMap(d -> textSplitter.split(d).stream())
                 .toList();
         log.debug("Split into {} chunks to fit context window", documents.size());
+
+        if (documents.isEmpty())
+            throw new SplittingException("Source does not have enough content to be indexed");
+        if (documents.size() < numDocumentsBeforeSplitting)
+            log.warn("There are less documents after splitting than before.");
 
         return documents;
     }
