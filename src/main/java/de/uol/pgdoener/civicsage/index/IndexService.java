@@ -5,7 +5,6 @@ import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
-import de.uol.pgdoener.civicsage.source.FileHashingService;
 import de.uol.pgdoener.civicsage.source.FileSource;
 import de.uol.pgdoener.civicsage.source.SourceService;
 import de.uol.pgdoener.civicsage.source.WebsiteSource;
@@ -19,10 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
 import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.FILE_ID;
@@ -48,7 +44,8 @@ public class IndexService {
 
     public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
         UUID fileId = indexFilesRequestInnerDto.getFileId();
-        Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties();
+        final Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties() == null ?
+                new HashMap<>() : indexFilesRequestInnerDto.getAdditionalProperties();
 
         // Verify that the file is not already indexed for the current model
         FileSource fileSource = sourceService.getFileSourceById(fileId);
@@ -83,6 +80,8 @@ public class IndexService {
     public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         String url = indexWebsiteRequestDto.getUrl();
         url = normalizeURL(url);
+        final Map<String, Object> additionalProperties = indexWebsiteRequestDto.getAdditionalProperties() == null ?
+                new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
                 .orElse(new WebsiteSource(null, url, new ArrayList<>()));
@@ -95,7 +94,7 @@ public class IndexService {
 
         documents = postProcessDocuments(documents);
         documents.forEach(document ->
-                document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), indexWebsiteRequestDto.getAdditionalProperties()));
+                document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalProperties));
 
         websiteSource.getModels().add(modelID);
         sourceService.save(websiteSource);
