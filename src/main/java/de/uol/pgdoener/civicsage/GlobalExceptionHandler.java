@@ -31,9 +31,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SplittingException.class)
     public ResponseEntity<Object> handleSplittingException(SplittingException ex) {
-        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.I_AM_A_TEAPOT, ex.getMessage());
         log.debug("SplittingException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(errorResponse.getBody());
     }
 
     @ExceptionHandler(FilterExpressionException.class)
