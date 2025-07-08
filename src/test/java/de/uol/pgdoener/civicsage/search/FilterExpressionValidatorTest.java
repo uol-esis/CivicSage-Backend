@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FilterExpressionValidatorTest {
 
-    FilterExpressionValidator filterExpressionValidator = new FilterExpressionValidator();
+    final FilterExpressionValidator filterExpressionValidator = new FilterExpressionValidator();
 
     @Test
     void testValidateAllowed() {
@@ -17,7 +17,7 @@ class FilterExpressionValidatorTest {
         assertTrue(MetadataKeys.TITLE.isExposed());
         assertTrue(MetadataKeys.URL.isExposed());
         assertDoesNotThrow(() -> filterExpressionValidator.validate(
-                "file_id == '6dddfa9d-1556-4a17-a177-1f45c35c73e1' AND file_name == 'test.txt' OR title NIN ['Test Title', 'HI'] AND NOT url == 'http://example.com/test' OR title IN ['value']"
+                "file_id == '6dddfa9d-1556-4a17-a177-1f45c35c73e1' AND file_name == 'test.txt' OR title NIN ['Test Title', 'HI'] AND NOT url == 'https://example.com/test' OR title IN ['value']"
         ));
     }
 

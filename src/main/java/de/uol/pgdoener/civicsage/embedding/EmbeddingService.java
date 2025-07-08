@@ -4,7 +4,6 @@ import de.uol.pgdoener.civicsage.config.CachingConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.cache.annotation.CacheEvict;
@@ -19,13 +18,6 @@ import java.util.List;
 public class EmbeddingService {
 
     private final VectorStore vectorStore;
-    private final EmbeddingModel embeddingModel;
-
-    public List<float[]> embedDocuments(List<Document> documents) {
-        return documents.stream()
-                .map(embeddingModel::embed)
-                .toList();
-    }
 
     @CacheEvict(
             cacheNames = CachingConfig.SEARCH_CACHE_NAME,
