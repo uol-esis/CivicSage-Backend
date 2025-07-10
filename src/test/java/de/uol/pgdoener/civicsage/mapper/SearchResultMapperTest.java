@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SearchResultMapperTest {
