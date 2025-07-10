@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.source.FileSource;
@@ -16,8 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -57,7 +61,8 @@ public class IndexService {
         // Read the file from storage and process it
         String fileName = fileSource.getFileName();
         InputStream file = storageService.load(fileId).orElseThrow(() -> new StorageException("Could not load file from storage"));
-        List<Document> documents = documentReaderService.read(file, fileName);
+        Resource resource = toResource(file, fileName);
+        List<Document> documents = documentReaderService.read(resource, fileName);
         log.debug("Read {} documents from file: {}", documents.size(), fileName);
 
         documents = postProcessDocuments(documents);
@@ -71,6 +76,20 @@ public class IndexService {
         sourceService.save(fileSource);
 
         embeddingService.save(documents);
+    }
+
+    private Resource toResource(InputStream inputStream, String fileName) {
+        try {
+            byte[] data = inputStream.readAllBytes();
+            return new ByteArrayResource(data) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+        } catch (IOException e) {
+            throw new ReadFileException("Could not read PDF file: " + fileName, e);
+        }
     }
 
 
