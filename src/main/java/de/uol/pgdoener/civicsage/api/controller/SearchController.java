@@ -3,7 +3,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.SearchApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
-import de.uol.pgdoener.civicsage.search.SearchService;
+import de.uol.pgdoener.civicsage.business.search.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

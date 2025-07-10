@@ -2,7 +2,7 @@ package de.uol.pgdoener.civicsage.mapper;
 
 
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
-import de.uol.pgdoener.civicsage.search.SearchResultMapper;
+import de.uol.pgdoener.civicsage.business.search.SearchResultMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SearchResultMapperTest {
