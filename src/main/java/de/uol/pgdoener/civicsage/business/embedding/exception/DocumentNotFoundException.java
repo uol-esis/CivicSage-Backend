@@ -1,6 +1,6 @@
-package de.uol.pgdoener.civicsage.business.embedding.embedding.exception;
+package de.uol.pgdoener.civicsage.business.embedding.exception;
 
-import de.uol.pgdoener.civicsage.business.embedding.embedding.VectorStoreExtension;
+import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
 
 /**
  * This exception is thrown by {@link VectorStoreExtension}s to indicate that a

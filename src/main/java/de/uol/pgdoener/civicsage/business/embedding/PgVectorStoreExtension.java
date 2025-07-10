@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.embedding.embedding;
+package de.uol.pgdoener.civicsage.business.embedding;
 
 import de.uol.pgdoener.civicsage.business.embedding.embedding.exception.DocumentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
