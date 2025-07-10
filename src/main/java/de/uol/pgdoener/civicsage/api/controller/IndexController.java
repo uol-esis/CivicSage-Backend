@@ -1,7 +1,6 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
-import de.uol.pgdoener.civicsage.api.IndexApi;
 import de.uol.pgdoener.civicsage.autoconfigure.ServerProperties;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
