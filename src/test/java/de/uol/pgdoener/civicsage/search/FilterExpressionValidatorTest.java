@@ -1,7 +1,8 @@
 package de.uol.pgdoener.civicsage.search;
 
-import de.uol.pgdoener.civicsage.index.document.MetadataKeys;
-import de.uol.pgdoener.civicsage.search.exception.FilterExpressionException;
+import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
+import de.uol.pgdoener.civicsage.business.search.FilterExpressionValidator;
+import de.uol.pgdoener.civicsage.business.search.exception.FilterExpressionException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

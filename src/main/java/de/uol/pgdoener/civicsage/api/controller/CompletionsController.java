@@ -1,9 +1,9 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.CompletionsApiDelegate;
+import de.uol.pgdoener.civicsage.business.completion.SummaryService;
 import de.uol.pgdoener.civicsage.business.dto.SummarizeEmbeddings200ResponseDto;
 import de.uol.pgdoener.civicsage.business.dto.SummarizeEmbeddingsRequestDto;
-import de.uol.pgdoener.civicsage.completion.SummaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

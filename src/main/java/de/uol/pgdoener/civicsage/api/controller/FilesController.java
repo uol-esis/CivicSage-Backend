@@ -2,7 +2,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.FilesApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.UploadFile200ResponseDto;
-import de.uol.pgdoener.civicsage.storage.FileService;
+import de.uol.pgdoener.civicsage.business.storage.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;

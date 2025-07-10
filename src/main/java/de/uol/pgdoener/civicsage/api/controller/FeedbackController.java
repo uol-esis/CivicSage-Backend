@@ -2,7 +2,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.FeedbackApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.FeedbackDto;
-import de.uol.pgdoener.civicsage.feedback.FeedbackService;
+import de.uol.pgdoener.civicsage.business.feedback.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

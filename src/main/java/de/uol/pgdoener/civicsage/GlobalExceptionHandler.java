@@ -1,15 +1,15 @@
 package de.uol.pgdoener.civicsage;
 
-import de.uol.pgdoener.civicsage.embedding.exception.DocumentNotFoundException;
-import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
-import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
-import de.uol.pgdoener.civicsage.index.exception.SplittingException;
-import de.uol.pgdoener.civicsage.index.exception.StorageException;
-import de.uol.pgdoener.civicsage.search.exception.FilterExpressionException;
-import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
-import de.uol.pgdoener.civicsage.source.exception.HashingException;
-import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
-import de.uol.pgdoener.civicsage.source.exception.SourceNotFoundException;
+import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
+import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
+import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
+import de.uol.pgdoener.civicsage.business.search.exception.FilterExpressionException;
+import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.business.source.exception.HashingException;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceCollisionException;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
