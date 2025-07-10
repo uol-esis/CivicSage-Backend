@@ -1,14 +1,13 @@
 package de.uol.pgdoener.civicsage.index.document;
 
 import de.uol.pgdoener.civicsage.index.document.reader.PdfDocumentReader;
+import de.uol.pgdoener.civicsage.index.document.reader.WebsiteDocumentReader;
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.TextReader;
-import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
-import org.springframework.ai.reader.jsoup.config.JsoupDocumentReaderConfig;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
@@ -62,9 +61,10 @@ public class DocumentReaderFactory {
                     @NonNull
                     @Override
                     public List<Document> read() {
-                        return super.read().stream()
-                                .peek(d -> d.getMetadata().put(FILE_NAME.getValue(), fileName))
+                        List<Document> documents = super.read().stream()
                                 .toList();
+                        documents.forEach(d -> d.getMetadata().put(FILE_NAME.getValue(), fileName));
+                        return documents;
                     }
                 };
             }
@@ -73,10 +73,9 @@ public class DocumentReaderFactory {
     }
 
     public DocumentReader createForURL(@NonNull String url) {
-        JsoupDocumentReaderConfig config = JsoupDocumentReaderConfig.builder()
-                .additionalMetadata(URL.getValue(), url)
-                .build();
-        return new JsoupDocumentReader(url, config);
+        WebsiteDocumentReader reader = new WebsiteDocumentReader(url);
+        reader.getAdditionalMetadata().put(URL.getValue(), url);
+        return reader;
     }
 
 }

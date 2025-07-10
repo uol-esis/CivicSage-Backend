@@ -36,7 +36,7 @@ public class FileService {
             String hash = fileHashingService.hash(iss.getInputStream());
             sourceService.verifyFileHashNotIndexed(hash);
             UUID objectID = storeInStorage(iss);
-            sourceService.save(new FileSource(objectID, fileName, hash, List.of(modelID)));
+            sourceService.save(new FileSource(objectID, fileName, hash, List.of()));
             log.info("File {} uploaded successfully with ID {}", fileName, objectID);
             return objectID;
         } catch (IOException e) {
