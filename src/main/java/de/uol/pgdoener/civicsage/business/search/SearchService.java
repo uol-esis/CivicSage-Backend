@@ -2,7 +2,7 @@ package de.uol.pgdoener.civicsage.business.search;
 
 import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
-import de.uol.pgdoener.civicsage.business.embedding.embedding.EmbeddingService;
+import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

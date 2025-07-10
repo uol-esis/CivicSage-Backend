@@ -1,6 +1,6 @@
 package de.uol.pgdoener.civicsage.business.embedding;
 
-import de.uol.pgdoener.civicsage.business.embedding.embedding.exception.DocumentNotFoundException;
+import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;

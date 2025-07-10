@@ -1,6 +1,6 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
-import de.uol.pgdoener.civicsage.business.embedding.embedding.VectorStoreExtension;
+import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

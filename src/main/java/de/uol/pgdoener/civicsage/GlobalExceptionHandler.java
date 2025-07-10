@@ -1,6 +1,6 @@
 package de.uol.pgdoener.civicsage;
 
-import de.uol.pgdoener.civicsage.business.embedding.embedding.exception.DocumentNotFoundException;
+import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
