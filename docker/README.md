@@ -13,12 +13,12 @@ The steps to get the whole stack started are as follows (from within the `docker
 1. Start and configure the object storage with
    `docker compose up garage garage_config -d && docker compose logs garage_config -f`
     1. Wait until you see the following output in the console:
-    ```console
-    THE FOLLOWING KEY HAS BEEN GENERATED
-    ================
-    KEY ID: <SOME_KEY_ID>
-    SECRET_KEY: <SOME_SECRET_KEY>
-    ```
+        ```console
+        THE FOLLOWING KEY HAS BEEN GENERATED
+        ================
+        KEY ID: <SOME_KEY_ID>
+        SECRET_KEY: <SOME_SECRET_KEY>
+        ```
     2. When everything worked correctly, you should now be back to the command line prompt.
 2. Copy the credentials into `civicsage.env` for docker deployment or `application-dev.properties` for local
    development.

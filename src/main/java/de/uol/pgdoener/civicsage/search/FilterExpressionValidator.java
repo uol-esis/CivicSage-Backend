@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class validates filter expressions based on exposed metadata keys ({@link MetadataKeys}) and
+ * whether they can be parsed ({@link FilterExpressionTextParser}).
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -27,6 +31,8 @@ public class FilterExpressionValidator {
      * the key for additional properties ({@link MetadataKeys#ADDITIONAL_PROPERTIES}) followed by a dot.
      *
      * @param filterString the expression to validate
+     * @throws FilterExpressionException if the expression is not valid, i.e. it uses metadata keys that are not
+     *                                   exposed, or it could not be parsed
      */
     public void validate(String filterString) {
         Filter.Expression expression;
@@ -42,6 +48,12 @@ public class FilterExpressionValidator {
         }
     }
 
+    /**
+     * This method recursively checks if the provided filter expression is valid.
+     *
+     * @param expression the expression to check
+     * @return true if the expression is valid, false otherwise
+     */
     private boolean isValid(Filter.Expression expression) {
         return switch (expression.type()) {
             case AND, OR -> isValid(expression.left()) && isValid(expression.right());
@@ -50,6 +62,12 @@ public class FilterExpressionValidator {
         };
     }
 
+    /**
+     * This method checks if the provided operand is valid.
+     *
+     * @param operand the operand to check
+     * @return true if the operand is valid, false otherwise
+     */
     private boolean isValid(Filter.Operand operand) {
         if (operand instanceof Filter.Expression expression)
             return isValid(expression);
@@ -58,6 +76,15 @@ public class FilterExpressionValidator {
         throw new IllegalStateException("Unsupported operand"); // this should not happen, if the spring implementation does not change
     }
 
+    /**
+     * This method checks if the provided metadata key is valid. Keys that are not exposed in the
+     * {@link MetadataKeys} enum are considered invalid. Additionally, keys for additional properties
+     * that start with the key for additional properties ({@link MetadataKeys#ADDITIONAL_PROPERTIES})
+     * followed by a dot are also considered valid.
+     *
+     * @param key the metadata key to check
+     * @return true if the key is valid, false otherwise
+     */
     private boolean isValidMetadataKey(String key) {
         return validMetadataKeys.contains(key) || key.startsWith(MetadataKeys.ADDITIONAL_PROPERTIES.getValue() + ".");
     }
