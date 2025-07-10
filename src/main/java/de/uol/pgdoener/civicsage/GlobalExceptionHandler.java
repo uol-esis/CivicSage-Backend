@@ -1,7 +1,12 @@
 package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
-import jakarta.persistence.EntityNotFoundException;
+import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.index.exception.StorageException;
+import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.source.exception.HashingException;
+import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
+import de.uol.pgdoener.civicsage.source.exception.SourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -21,10 +26,52 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(StorageException.class)
+    public ResponseEntity<Object> handleStorageException(StorageException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.debug("StorageException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(HashingException.class)
+    public ResponseEntity<Object> handleHashingException(HashingException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        log.debug("HashingException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(SourceCollisionException.class)
+    public ResponseEntity<Object> handleSourceCollisionException(SourceCollisionException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.CONFLICT, ex.getMessage());
+        log.debug("SourceCollisionException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(SourceNotFoundException.class)
+    public ResponseEntity<Object> handleSourceNotFoundException(SourceNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
+        log.debug("SourceNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(NotEnoughResultsAvailableException.class)
+    public ResponseEntity<Object> handleNotEnoughResultsAvailableException(NotEnoughResultsAvailableException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("NotEnoughResultsAvailableException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
+
     @ExceptionHandler(ReadFileException.class)
     public ResponseEntity<Object> handleReadFileException(ReadFileException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
         log.debug("ReadFileException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(ReadUrlException.class)
+    public ResponseEntity<Object> handleReadUrlException(ReadUrlException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("ReadUrlException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
     }
 
@@ -46,13 +93,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
         log.debug("IllegalArgumentException: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
-    }
-
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Object> handleEntityNotFoundException(EntityNotFoundException ex) {
-        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-        log.debug("EntityNotFoundException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
     }
 

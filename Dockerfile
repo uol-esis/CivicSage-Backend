@@ -21,11 +21,11 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /opt/pg
 
 # Create a group and user for better security
-RUN addgroup -S pg && \
-    adduser -S -G pg pg && \
+RUN addgroup --system pg && \
+    adduser --system --no-create-home --ingroup pg pg && \
     chown -R pg:pg /opt/pg
 
-# Copy the JAR fromRequest the build stage
+# Copy the JAR from the build stage
 COPY --from=build /app/target/civicsage.jar app.jar
 
 # Change to 'pg' user
