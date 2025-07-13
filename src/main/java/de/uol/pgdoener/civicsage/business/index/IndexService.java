@@ -104,7 +104,7 @@ public class IndexService {
                 new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
-                .orElse(new WebsiteSource(null, url, new ArrayList<>()));
+                .orElse(new WebsiteSource(null, url, new ArrayList<>(), new HashMap<>()));
         if (websiteSource.getModels().contains(modelID)) {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
