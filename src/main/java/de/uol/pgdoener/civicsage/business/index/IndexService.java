@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
 import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.FILE_ID;
@@ -73,6 +75,7 @@ public class IndexService {
 
         // Update the file source with the new model ID
         fileSource.getModels().add(modelID);
+        fileSource.getMetadata().putAll(getMetadataFromDocuments(documents));
         sourceService.save(fileSource);
 
         embeddingService.save(documents);
@@ -117,6 +120,7 @@ public class IndexService {
                 document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalProperties));
 
         websiteSource.getModels().add(modelID);
+        websiteSource.getMetadata().putAll(getMetadataFromDocuments(documents));
         sourceService.save(websiteSource);
 
         embeddingService.save(documents);
@@ -156,6 +160,29 @@ public class IndexService {
             log.warn("There are less documents after splitting than before.");
 
         return documents;
+    }
+
+    /**
+     * This method extracts the metadata from the first document in the list.
+     * It filters the metadata keys to only include those that are exposed via the API.
+     *
+     * @param documents the list of documents to extract metadata from
+     * @return a map of metadata keys and values that are exposed via the API
+     */
+    private Map<String, Object> getMetadataFromDocuments(List<Document> documents) {
+        final Map<String, Object> metadataOfFirstDocument = documents.getFirst().getMetadata();
+        Map<String, Object> exposedMetadata = MetadataKeys.EXPOSED_KEYS.stream()
+                .filter(k -> metadataOfFirstDocument.containsKey(k.getValue()))
+                .collect(Collectors.toMap(
+                        MetadataKeys::getValue,
+                        v -> metadataOfFirstDocument.get(v.getValue())
+                ));
+        if (metadataOfFirstDocument.containsKey(ADDITIONAL_PROPERTIES.getValue()))
+            exposedMetadata.put(
+                    ADDITIONAL_PROPERTIES.getValue(),
+                    metadataOfFirstDocument.get(ADDITIONAL_PROPERTIES.getValue())
+            );
+        return exposedMetadata;
     }
 
 }

@@ -3,6 +3,9 @@ package de.uol.pgdoener.civicsage.business.index.document;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Getter
 @RequiredArgsConstructor
 public enum MetadataKeys {
@@ -16,6 +19,10 @@ public enum MetadataKeys {
     URL("url", true),
     ADDITIONAL_PROPERTIES("additional_properties", false), // this is marked as internal, but is available in filter expression using "additional_properties."
     STARTUP_DOCUMENT("startup_document", false);
+
+    public static final List<MetadataKeys> EXPOSED_KEYS = Arrays.stream(MetadataKeys.values())
+            .filter(MetadataKeys::isExposed)
+            .toList();
 
     /**
      * The key used in the metadata map stored in the {@link org.springframework.ai.vectorstore.VectorStore}
