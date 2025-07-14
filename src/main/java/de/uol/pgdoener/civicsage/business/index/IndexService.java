@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
@@ -172,10 +173,11 @@ public class IndexService {
     private Map<String, Object> getMetadataFromDocuments(List<Document> documents) {
         final Map<String, Object> metadataOfFirstDocument = documents.getFirst().getMetadata();
         Map<String, Object> exposedMetadata = MetadataKeys.EXPOSED_KEYS.stream()
-                .filter(k -> metadataOfFirstDocument.containsKey(k.getValue()))
+                .map(MetadataKeys::getValue)
+                .filter(metadataOfFirstDocument::containsKey)
                 .collect(Collectors.toMap(
-                        MetadataKeys::getValue,
-                        v -> metadataOfFirstDocument.get(v.getValue())
+                        Function.identity(),
+                        metadataOfFirstDocument::get
                 ));
         if (metadataOfFirstDocument.containsKey(ADDITIONAL_PROPERTIES.getValue()))
             exposedMetadata.put(
