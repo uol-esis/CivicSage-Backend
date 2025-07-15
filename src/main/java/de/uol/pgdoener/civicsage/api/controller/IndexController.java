@@ -27,9 +27,9 @@ public class IndexController implements IndexApiDelegate {
         CompletableFuture<ResponseEntity<Void>> future = CompletableFuture.supplyAsync(() -> {
             log.info("Received {} files to index", requests.size());
             for (IndexFilesRequestInnerDto request : requests) {
-                log.info("Indexing file {}", request.getName());
+                log.info("Indexing file {}", request.getTitle());
                 indexService.indexFile(request);
-                log.info("File {} indexed successfully", request.getName());
+                log.info("File {} indexed successfully", request.getTitle());
             }
             return ResponseEntity.ok().build();
         }, executorService);

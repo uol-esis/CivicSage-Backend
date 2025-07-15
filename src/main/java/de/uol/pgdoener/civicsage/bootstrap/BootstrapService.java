@@ -62,7 +62,7 @@ public class BootstrapService {
                         }
                     }
 
-                    IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto(fileId, f.getName());
+                    IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto(fileId);
                     // not sure if additional properties are the right place to mark this document to be loaded at startup.
                     // Maybe a dedicated metadata entry would be better... Or no marking necessary at all?
                     request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
@@ -111,7 +111,7 @@ public class BootstrapService {
         for (FileSource fileSource : fileSourcesToIndex) {
             IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto();
             request.setFileId(fileSource.getObjectStorageId());
-            request.setName(fileSource.getFileName());
+            request.title(fileSource.getFileName());
             request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
             indexService.indexFile(request);
         }
