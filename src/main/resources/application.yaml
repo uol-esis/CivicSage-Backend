@@ -8,12 +8,9 @@ spring:
     hibernate:
       ddl-auto: update
   ai:
-    # https://docs.spring.io/spring-ai/reference/api/vectordbs/pgvector.html
+    # https://docs.spring.io/spring-ai/reference/api/vectordbs/mariadb.html
     vectorstore:
-      pgvector:
-        index-type: hnsw
-        distance-type: cosine_distance
-        max-document-batch-size: 10000
+      mariadb:
         initialize-schema: true
     # https://docs.spring.io/spring-ai/reference/api/chat/dmr-chat.html
     openai:

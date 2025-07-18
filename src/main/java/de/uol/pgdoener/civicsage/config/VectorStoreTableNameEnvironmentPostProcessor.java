@@ -13,14 +13,14 @@ import static org.springframework.core.env.StandardEnvironment.SYSTEM_ENVIRONMEN
 /**
  * This post processor handles table names for vector stores.
  * <p>
- * If the {@code spring.ai.vectorstore.pgvector.table-name} is already set, this does nothing.
+ * If the {@code spring.ai.vectorstore.mariadb.table-name} is already set, this does nothing.
  * <p>
  * If the property is not set, it sets it to {@code vector_store_${spring.ai.openai.embedding.options.model}} where
  * slashes and dashes in the model name are replaced with underscores.
  */
 public class VectorStoreTableNameEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
-    private static final String TABLE_NAME_PROPERTY_NAME = "spring.ai.vectorstore.pgvector.table-name";
+    private static final String TABLE_NAME_PROPERTY_NAME = "spring.ai.vectorstore.mariadb.table-name";
     private static final String MODEL_PROPERTY_NAME = "spring.ai.openai.embedding.options.model";
 
     @Override
