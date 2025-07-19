@@ -62,6 +62,30 @@ spring.ai.openai.base-url=http://localhost:12434/engines
 spring.ai.openai.api-key=test
 ```
 
+## Configuring the VectorStore
+
+You can switch between different vector stores.
+The default is the MariaDB VectorStore, which is configured via the following properties:
+
+```properties
+civicsage.ai.vectorstore.type=mariadb
+civicsage.ai.vectorstore.initialize-schema=false
+civicsage.ai.vectorstore.remove-existing-vector-store-table=false
+civicsage.ai.vectorstore.schema-name=null
+civicsage.ai.vectorstore.schema-validation=false
+civicsage.ai.vectorstore.table-name-prefix=vector_store_
+civicsage.ai.vectorstore.distance=cosine
+```
+
+You can also use the `postgresql` vector store by setting the type to `postgresql`:
+
+```properties
+civicsage.ai.vectorstore.type=postgresql
+```
+
+However, we are not currently testing this vector store, so it may not work as expected.
+Spring AI does not support vectors with more than 2000 dimensions with PostgreSQL.
+
 ## Upload limits
 
 Upload limits can be configured via the `application.properties` file. The default values are:

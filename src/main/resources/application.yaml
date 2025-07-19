@@ -8,10 +8,6 @@ spring:
     hibernate:
       ddl-auto: update
   ai:
-    # https://docs.spring.io/spring-ai/reference/api/vectordbs/mariadb.html
-    vectorstore:
-      mariadb:
-        initialize-schema: true
     # https://docs.spring.io/spring-ai/reference/api/chat/dmr-chat.html
     openai:
       base-url: http://localhost:12434/engines
@@ -39,6 +35,9 @@ civicsage:
     embedding:
       model:
         context-length: 256
+    vector-store:
+      type: mariadb
+      initialize-schema: true
   security:
     allowed-origins:
       - "*"

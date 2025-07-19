@@ -1,10 +1,11 @@
 package de.uol.pgdoener.civicsage.business.embedding;
 
 import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
+import de.uol.pgdoener.civicsage.config.VectorStoreTableNameProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.mariadb.MariaDBVectorStore;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +16,14 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "civicsage.ai.vectorstore.type", havingValue = "MARIADB")
 public class MariaDBVectorStoreExtension implements VectorStoreExtension {
 
     private final JdbcTemplate template;
+    private final String tableName;
 
-    @Value("${spring.ai.vectorstore.mariadb.table-name}")
-    private String tableName;
-
-    public MariaDBVectorStoreExtension(MariaDBVectorStore pgVectorStore) {
+    public MariaDBVectorStoreExtension(VectorStore pgVectorStore, VectorStoreTableNameProvider tableNameProvider) {
+        this.tableName = tableNameProvider.getTableName();
         Optional<JdbcTemplate> optTemplate = pgVectorStore.getNativeClient();
         template = optTemplate.orElseThrow(() -> new RuntimeException("Could not get native client from MariaDBVectorStore"));
     }
