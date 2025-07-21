@@ -18,12 +18,12 @@ public class SourceService {
     private final FileSourceRepository fileSourceRepository;
     private final WebsiteSourceRepository websiteSourceRepository;
 
-    public void save(FileSource fileSource) {
-        fileSourceRepository.save(fileSource);
+    public FileSource save(FileSource fileSource) {
+        return fileSourceRepository.save(fileSource);
     }
 
-    public void save(WebsiteSource websiteSource) {
-        websiteSourceRepository.save(websiteSource);
+    public WebsiteSource save(WebsiteSource websiteSource) {
+        return websiteSourceRepository.save(websiteSource);
     }
 
     public FileSource getFileSourceById(UUID id) {
@@ -63,6 +63,12 @@ public class SourceService {
     public Iterable<WebsiteSource> getAllWebsiteSources(String filterExpression) {
         // TODO: Implement filtering logic based on the filterExpression
         return websiteSourceRepository.findAll();
+    }
+
+    public void deleteSource(UUID id) {
+        log.info("Deleting source with id: {}", id);
+        fileSourceRepository.deleteById(id);
+        websiteSourceRepository.deleteById(id);
     }
 
 }

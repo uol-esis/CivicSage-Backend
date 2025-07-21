@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.SourcesApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.GetAllIndexedSources200ResponseDto;
+import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.SourceMapper;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
@@ -9,8 +10,10 @@ import de.uol.pgdoener.civicsage.business.source.WebsiteSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class SourcesController implements SourcesApiDelegate {
 
     private final SourceService sourceService;
     private final SourceMapper sourceMapper;
+    private final EmbeddingService embeddingService;
 
     @Override
     public ResponseEntity<GetAllIndexedSources200ResponseDto> getAllIndexedSources(Optional<String> filterExpression) {
@@ -34,6 +38,14 @@ public class SourcesController implements SourcesApiDelegate {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<Void> deleteIndexedSource(UUID id) {
+        sourceService.deleteSource(id);
+        embeddingService.delete(id);
+        return ResponseEntity.ok().build();
     }
 
 }
