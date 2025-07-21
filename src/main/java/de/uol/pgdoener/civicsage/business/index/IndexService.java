@@ -28,8 +28,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.FILE_ID;
+import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.*;
 
 @Slf4j
 @Service
@@ -52,6 +51,7 @@ public class IndexService {
 
     public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
         UUID fileId = indexFilesRequestInnerDto.getFileId();
+        Optional<String> title = indexFilesRequestInnerDto.getTitle();
         final Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties() == null ?
                 new HashMap<>() : indexFilesRequestInnerDto.getAdditionalProperties();
 
@@ -71,6 +71,7 @@ public class IndexService {
         documents = postProcessDocuments(documents);
         documents.forEach(document -> {
             document.getMetadata().put(FILE_ID.getValue(), fileId);
+            document.getMetadata().put(TITLE.getValue(), titleOrFileName(title, fileName));
             document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalMetadata);
         });
 
@@ -80,6 +81,20 @@ public class IndexService {
         sourceService.save(fileSource);
 
         embeddingService.save(documents);
+    }
+
+    private String titleOrFileName(Optional<String> title, String fileName) {
+        return title.orElseGet(() -> {
+            if (fileName == null || fileName.isBlank()) {
+                return "Untitled";
+            }
+            // Remove file extension and trim whitespace
+            int lastDotIndex = fileName.lastIndexOf('.');
+            if (lastDotIndex > 0) {
+                return fileName.substring(0, lastDotIndex).trim();
+            }
+            return fileName.trim();
+        });
     }
 
     private Resource toResource(InputStream inputStream, String fileName) {
