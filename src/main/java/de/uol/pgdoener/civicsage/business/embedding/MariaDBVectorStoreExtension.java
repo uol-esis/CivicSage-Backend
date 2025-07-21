@@ -22,9 +22,9 @@ public class MariaDBVectorStoreExtension implements VectorStoreExtension {
     private final JdbcTemplate template;
     private final String tableName;
 
-    public MariaDBVectorStoreExtension(VectorStore pgVectorStore, VectorStoreTableNameProvider tableNameProvider) {
+    public MariaDBVectorStoreExtension(VectorStore mariaDBVectorStore, VectorStoreTableNameProvider tableNameProvider) {
         this.tableName = tableNameProvider.getTableName();
-        Optional<JdbcTemplate> optTemplate = pgVectorStore.getNativeClient();
+        Optional<JdbcTemplate> optTemplate = mariaDBVectorStore.getNativeClient();
         template = optTemplate.orElseThrow(() -> new RuntimeException("Could not get native client from MariaDBVectorStore"));
     }
 
