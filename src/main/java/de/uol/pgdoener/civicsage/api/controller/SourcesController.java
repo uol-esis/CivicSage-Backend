@@ -7,6 +7,7 @@ import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.SourceMapper;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
 import de.uol.pgdoener.civicsage.business.source.WebsiteSource;
+import de.uol.pgdoener.civicsage.business.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,7 @@ public class SourcesController implements SourcesApiDelegate {
     private final SourceService sourceService;
     private final SourceMapper sourceMapper;
     private final EmbeddingService embeddingService;
+    private final StorageService storageService;
 
     @Override
     public ResponseEntity<GetAllIndexedSources200ResponseDto> getAllIndexedSources(Optional<String> filterExpression) {
@@ -45,6 +47,7 @@ public class SourcesController implements SourcesApiDelegate {
     public ResponseEntity<Void> deleteIndexedSource(UUID id) {
         sourceService.deleteSource(id);
         embeddingService.delete(id);
+        storageService.delete(id);
         return ResponseEntity.ok().build();
     }
 

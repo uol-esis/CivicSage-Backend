@@ -20,4 +20,11 @@ public interface StorageService {
      */
     Optional<InputStream> load(UUID objectID);
 
+    /**
+     * Deletes the object with the given UUID from the objectStorage.
+     *
+     * @param id UUID of the object to delete
+     */
+    void delete(UUID id);
+
 }
