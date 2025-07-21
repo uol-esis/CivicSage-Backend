@@ -28,8 +28,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.FILE_ID;
+import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.*;
 
 @Slf4j
 @Service
@@ -77,7 +76,11 @@ public class IndexService {
         // Update the file source with the new model ID
         fileSource.getModels().add(modelID);
         fileSource.getMetadata().putAll(getMetadataFromDocuments(documents));
-        sourceService.save(fileSource);
+        fileSource = sourceService.save(fileSource);
+
+        final FileSource finalFileSource = fileSource;
+        documents.forEach(document ->
+                document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId()));
 
         embeddingService.save(documents);
     }
@@ -122,7 +125,11 @@ public class IndexService {
 
         websiteSource.getModels().add(modelID);
         websiteSource.getMetadata().putAll(getMetadataFromDocuments(documents));
-        sourceService.save(websiteSource);
+        websiteSource = sourceService.save(websiteSource);
+
+        final WebsiteSource finalWebsiteSource = websiteSource;
+        documents.forEach(document ->
+                document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
 
         embeddingService.save(documents);
     }
