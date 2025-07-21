@@ -55,4 +55,14 @@ public class SourceService {
         return websiteSourceRepository.getWebsiteSourceByModelsNotContaining(modelId);
     }
 
+    public Iterable<FileSource> getAllFileSources(String filterExpression) {
+        // TODO: Implement filtering logic based on the filterExpression
+        return fileSourceRepository.findAll();
+    }
+
+    public Iterable<WebsiteSource> getAllWebsiteSources(String filterExpression) {
+        // TODO: Implement filtering logic based on the filterExpression
+        return websiteSourceRepository.findAll();
+    }
+
 }
