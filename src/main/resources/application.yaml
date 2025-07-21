@@ -27,6 +27,8 @@ spring:
           model: ai/smollm2
     model:
       embedding: openai
+    retry:
+      max-attempts: 2
   cache:
     cache-names:
       - embeddingSearch
@@ -42,6 +44,7 @@ civicsage:
     embedding:
       model:
         context-length: 256
+        batch-size: 10
   security:
     allowed-origins:
       - "*"

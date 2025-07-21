@@ -36,6 +36,11 @@ public class AIProperties {
              * The context length for the embedding model.
              */
             private Integer contextLength = 256;
+            /**
+             * The batch size for embedding tasks.
+             * This is the number of documents that will be sent in a single batch for embedding.
+             */
+            private int batchSize = 1;
         }
     }
 

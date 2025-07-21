@@ -18,13 +18,17 @@ import java.util.List;
 public class EmbeddingService {
 
     private final VectorStore vectorStore;
+    private final EmbeddingBacklog embeddingBacklog;
 
-    @CacheEvict(
-            cacheNames = CachingConfig.SEARCH_CACHE_NAME,
-            allEntries = true
-    )
     public void save(List<Document> documents) {
-        vectorStore.add(documents);
+        EmbeddingTask task = new EmbeddingTask(documents);
+        embeddingBacklog.add(task);
+        // TODO: maybe wait for the task to be processed.
+        // For now, we just add it to the backlog and let the executor handle it.
+        // Thus this method returns immediately without waiting for the task to be processed.
+        // This causes status code 200 to be returned immediately, but the task might not be processed yet.
+        // If we block here until the task is processed, this might lead to a lot of threads waiting although their
+        // request timed out already.
     }
 
     @Cacheable(
@@ -33,6 +37,14 @@ public class EmbeddingService {
     public List<Document> search(SearchRequest search) {
         log.debug("Cache miss for embedding search");
         return vectorStore.similaritySearch(search);
+    }
+
+    @CacheEvict(
+            cacheNames = CachingConfig.SEARCH_CACHE_NAME,
+            allEntries = true
+    )
+    public void clearCache() {
+        log.debug("Clearing embedding cache");
     }
 
 }

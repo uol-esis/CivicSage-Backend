@@ -147,7 +147,7 @@ public class IndexService {
 
     private List<Document> postProcessDocuments(List<Document> documents) {
         documents = semanticSplitterService.process(documents);
-        log.debug("Website split into {} semantic chunks", documents.size());
+        log.debug("Source split into {} semantic chunks", documents.size());
 
         final int numDocumentsBeforeSplitting = documents.size();
         documents = documents.stream()
