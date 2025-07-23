@@ -21,6 +21,7 @@ import java.util.UUID;
 public class EmbeddingService {
 
     private final VectorStore vectorStore;
+    private final UnusedModelsVectorStores unusedModelsVectorStores;
 
     @CacheEvict(
             cacheNames = CachingConfig.SEARCH_CACHE_NAME,
@@ -50,6 +51,7 @@ public class EmbeddingService {
         FilterExpressionBuilder.Op op = b.eq(MetadataKeys.SOURCE_ID.getValue(), sourceId.toString());
 
         vectorStore.delete(op.build());
+        unusedModelsVectorStores.delete(op.build());
     }
 
 }
