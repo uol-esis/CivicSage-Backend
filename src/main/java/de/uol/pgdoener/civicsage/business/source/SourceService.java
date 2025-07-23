@@ -71,4 +71,7 @@ public class SourceService {
         websiteSourceRepository.deleteById(id);
     }
 
+    public boolean existsById(UUID id) {
+        return fileSourceRepository.existsById(id) || websiteSourceRepository.existsById(id);
+    }
 }

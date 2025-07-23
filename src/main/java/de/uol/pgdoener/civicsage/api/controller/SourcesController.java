@@ -45,8 +45,11 @@ public class SourcesController implements SourcesApiDelegate {
     @Override
     @Transactional
     public ResponseEntity<Void> deleteIndexedSource(UUID id) {
-        sourceService.deleteSource(id);
         embeddingService.delete(id);
+        if (!sourceService.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        sourceService.deleteSource(id);
         storageService.delete(id);
         return ResponseEntity.status(204).build();
     }
