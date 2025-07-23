@@ -48,7 +48,7 @@ public class SourcesController implements SourcesApiDelegate {
         sourceService.deleteSource(id);
         embeddingService.delete(id);
         storageService.delete(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(204).build();
     }
 
 }
