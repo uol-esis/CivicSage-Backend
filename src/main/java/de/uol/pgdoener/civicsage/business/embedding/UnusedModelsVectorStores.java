@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -44,7 +45,7 @@ public class UnusedModelsVectorStores {
         // remove the vector store table for the current model
         vectorStoreTables.removeIf(i ->
                 i.tableName.equals(vectorStoreTableNameProvider.getTableName()) &&
-                        i.schemaName.equals(aiProperties.getVectorStore().getSchemaName())
+                        Objects.equals(i.schemaName, aiProperties.getVectorStore().getSchemaName())
         );
         log.info("VectorStore tables for unused models: {}", vectorStoreTables);
 
@@ -107,7 +108,6 @@ public class UnusedModelsVectorStores {
 
     @NonNullApi
     private static final class DummyEmbeddingModel implements EmbeddingModel {
-
         @Override
         public EmbeddingResponse call(EmbeddingRequest request) {
             throw new UnsupportedOperationException();
@@ -116,6 +116,11 @@ public class UnusedModelsVectorStores {
         @Override
         public float[] embed(Document document) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int dimensions() {
+            return 1;
         }
     }
 
