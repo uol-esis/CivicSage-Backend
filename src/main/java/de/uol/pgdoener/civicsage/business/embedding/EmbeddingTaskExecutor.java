@@ -39,7 +39,7 @@ public class EmbeddingTaskExecutor {
                 .name("embedding-task-executor")
                 .start(() -> {
                     log.info("Started embedding task executor thread");
-                    while (true) {
+                    while (!Thread.currentThread().isInterrupted()) {
                         try {
                             EmbeddingTask task = embeddingBacklog.peek();
                             log.info("Embedding task with {} documents started", task.documents().size());
