@@ -17,11 +17,11 @@ public class EmbeddingConfig {
     private static final double CONTEXT_WINDOW_FILLED_RATIO = 0.85;
 
     private final int contextLength;
-    private final int batchSize;
+    private final int documentContextLength;
 
     public EmbeddingConfig(AIProperties aiProperties) {
         this.contextLength = aiProperties.getEmbedding().getModel().getContextLength();
-        this.batchSize = aiProperties.getEmbedding().getModel().getBatchSize();
+        this.documentContextLength = aiProperties.getEmbedding().getDocumentContextLength();
     }
 
     // https://docs.spring.io/spring-ai/reference/api/vectordbs.html#_default_implementation
@@ -30,7 +30,7 @@ public class EmbeddingConfig {
         log.info("Initializing TokenCountBatchingStrategy with {} tokens", contextLength);
         return new TokenCountBatchingStrategy(
                 EncodingType.CL100K_BASE,
-                contextLength * batchSize,
+                contextLength,
                 0.1
         );
     }
@@ -38,7 +38,7 @@ public class EmbeddingConfig {
     @Bean
     public TextSplitter textSplitter() {
         return TokenTextSplitter.builder()
-                .withChunkSize((int) (contextLength * CONTEXT_WINDOW_FILLED_RATIO))
+                .withChunkSize((int) (documentContextLength * CONTEXT_WINDOW_FILLED_RATIO))
                 .build();
     }
 

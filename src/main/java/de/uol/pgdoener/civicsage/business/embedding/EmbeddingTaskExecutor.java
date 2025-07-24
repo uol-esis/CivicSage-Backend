@@ -1,10 +1,12 @@
 package de.uol.pgdoener.civicsage.business.embedding;
 
+import de.uol.pgdoener.civicsage.config.CachingConfig;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +30,7 @@ public class EmbeddingTaskExecutor {
                         try {
                             EmbeddingTask task = embeddingBacklog.poll();
                             processTask(task);
+                            clearCache();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             break;
@@ -68,6 +71,14 @@ public class EmbeddingTaskExecutor {
                 }
             }
         }
+    }
+
+    @CacheEvict(
+            cacheNames = CachingConfig.SEARCH_CACHE_NAME,
+            allEntries = true
+    )
+    public void clearCache() {
+        log.debug("Clearing embedding cache");
     }
 
 }

@@ -37,7 +37,6 @@ civicsage:
     embedding:
       model:
         context-length: 256
-        batch-size: 1
     vector-store:
       type: mariadb
       initialize-schema: true
