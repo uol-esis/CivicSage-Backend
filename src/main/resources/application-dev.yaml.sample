@@ -14,7 +14,7 @@ spring:
   datasource:
     username: example
     password: example
-    url: jdbc:postgresql://localhost:5432/example
+    url: jdbc:mariadb://localhost:3306/example
 civicsage:
   bootstrap:
     data:
