@@ -84,7 +84,7 @@ public class IndexService {
         documents.forEach(document ->
                 document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId()));
 
-        embeddingService.save(documents);
+        embeddingService.save(documents, finalFileSource.getObjectStorageId());
     }
 
     private String titleOrFileName(Optional<String> title, String fileName) {
@@ -147,7 +147,7 @@ public class IndexService {
         documents.forEach(document ->
                 document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
 
-        embeddingService.save(documents);
+        embeddingService.save(documents, finalWebsiteSource.getId());
     }
 
     public String normalizeURL(String url) {

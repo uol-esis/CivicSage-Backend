@@ -11,7 +11,7 @@ import java.util.Map;
 @Component
 public class SourceMapper {
 
-    public FileSourceDto toDto(@NonNull FileSource fileSource) {
+    public FileSourceDto toDto(@NonNull FileSource fileSource, boolean embedded) {
         FileSourceDto dto = new FileSourceDto()
                 .fileId(fileSource.getObjectStorageId())
                 .fileName(fileSource.getFileName());
@@ -22,10 +22,11 @@ public class SourceMapper {
                     if (!MetadataKeys.TITLE.getValue().equals(key))
                         dto.putAdditionalProperty(key, value);
                 });
+        dto.putAdditionalProperty("embedded", embedded);
         return dto;
     }
 
-    public WebsiteSourceDto toDto(@NonNull WebsiteSource websiteSource) {
+    public WebsiteSourceDto toDto(@NonNull WebsiteSource websiteSource, boolean embedded) {
         WebsiteSourceDto dto = new WebsiteSourceDto()
                 .websiteId(websiteSource.getId())
                 .url(websiteSource.getUrl());
@@ -36,6 +37,7 @@ public class SourceMapper {
                     if (!MetadataKeys.TITLE.getValue().equals(key))
                         dto.putAdditionalProperty(key, value);
                 });
+        dto.putAdditionalProperty("embedded", embedded);
         return dto;
     }
 

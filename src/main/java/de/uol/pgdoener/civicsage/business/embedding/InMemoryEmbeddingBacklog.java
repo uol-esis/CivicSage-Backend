@@ -2,6 +2,8 @@ package de.uol.pgdoener.civicsage.business.embedding;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -18,6 +20,13 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
     @Override
     public EmbeddingTask poll() throws InterruptedException {
         return backlog.take();
+    }
+
+    @Override
+    public Collection<UUID> getSourceIds() {
+        return backlog.stream()
+                .map(EmbeddingTask::sourceId)
+                .toList();
     }
 
 }

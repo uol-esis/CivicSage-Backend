@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,14 +30,18 @@ public class SourcesController implements SourcesApiDelegate {
     public ResponseEntity<GetAllIndexedSources200ResponseDto> getAllIndexedSources(Optional<String> filterExpression) {
         GetAllIndexedSources200ResponseDto response = new GetAllIndexedSources200ResponseDto();
 
+        final Collection<UUID> pendingSourceIds = embeddingService.getPendingSourceIds();
+
         Iterable<FileSource> fileSources = sourceService.getAllFileSources(filterExpression.orElse(""));
         for (FileSource fileSource : fileSources) {
-            response.addFilesItem(sourceMapper.toDto(fileSource));
+            boolean embedded = !pendingSourceIds.contains(fileSource.getObjectStorageId());
+            response.addFilesItem(sourceMapper.toDto(fileSource, embedded));
         }
 
         Iterable<WebsiteSource> websiteSources = sourceService.getAllWebsiteSources(filterExpression.orElse(""));
         for (WebsiteSource websiteSource : websiteSources) {
-            response.addWebsitesItem(sourceMapper.toDto(websiteSource));
+            boolean embedded = !pendingSourceIds.contains(websiteSource.getId());
+            response.addWebsitesItem(sourceMapper.toDto(websiteSource, embedded));
         }
 
         return ResponseEntity.ok(response);

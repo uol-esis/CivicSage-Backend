@@ -29,8 +29,10 @@ public class EmbeddingTaskExecutor {
                     while (true) {
                         try {
                             EmbeddingTask task = embeddingBacklog.poll();
+                            log.info("Embedding task with {} documents started", task.documents().size());
                             processTask(task);
                             clearCache();
+                            log.info("Successfully processed embedding task with {} documents", task.documents().size());
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             break;
@@ -59,7 +61,6 @@ public class EmbeddingTaskExecutor {
         while (true) {
             try {
                 vectorStore.add(task.documents());
-                log.info("Successfully processed embedding task with {} documents", task.documents().size());
                 return;
             } catch (Exception e) {
                 log.warn("Failed to process embedding task: {}", e.getMessage(), e);

@@ -12,6 +12,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,8 +24,8 @@ public class EmbeddingService {
     private final VectorStore vectorStore;
     private final EmbeddingBacklog embeddingBacklog;
 
-    public void save(List<Document> documents) {
-        EmbeddingTask task = new EmbeddingTask(documents);
+    public void save(List<Document> documents, UUID sourceId) {
+        EmbeddingTask task = new EmbeddingTask(sourceId, documents);
         embeddingBacklog.add(task);
     }
 
@@ -48,6 +49,13 @@ public class EmbeddingService {
         FilterExpressionBuilder.Op op = b.eq(MetadataKeys.SOURCE_ID.getValue(), sourceId.toString());
 
         vectorStore.delete(op.build());
+    }
+
+    @Cacheable(
+            cacheNames = CachingConfig.SEARCH_CACHE_NAME
+    )
+    public Collection<UUID> getPendingSourceIds() {
+        return embeddingBacklog.getSourceIds();
     }
 
 }
