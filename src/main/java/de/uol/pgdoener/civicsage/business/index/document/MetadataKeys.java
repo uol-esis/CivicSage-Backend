@@ -10,6 +10,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public enum MetadataKeys {
 
+    SOURCE_ID("source_id", true),
     FILE_NAME("file_name", true),
     FILE_ID("file_id", true),
     LINE_NUMBER("line_number", false),

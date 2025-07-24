@@ -18,12 +18,12 @@ public class SourceService {
     private final FileSourceRepository fileSourceRepository;
     private final WebsiteSourceRepository websiteSourceRepository;
 
-    public void save(FileSource fileSource) {
-        fileSourceRepository.save(fileSource);
+    public FileSource save(FileSource fileSource) {
+        return fileSourceRepository.save(fileSource);
     }
 
-    public void save(WebsiteSource websiteSource) {
-        websiteSourceRepository.save(websiteSource);
+    public WebsiteSource save(WebsiteSource websiteSource) {
+        return websiteSourceRepository.save(websiteSource);
     }
 
     public FileSource getFileSourceById(UUID id) {
@@ -65,4 +65,13 @@ public class SourceService {
         return websiteSourceRepository.findAll();
     }
 
+    public void deleteSource(UUID id) {
+        log.info("Deleting source with id: {}", id);
+        fileSourceRepository.deleteById(id);
+        websiteSourceRepository.deleteById(id);
+    }
+
+    public boolean existsById(UUID id) {
+        return fileSourceRepository.existsById(id) || websiteSourceRepository.existsById(id);
+    }
 }

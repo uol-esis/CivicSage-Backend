@@ -5,6 +5,7 @@ import de.uol.pgdoener.civicsage.business.storage.StorageService;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +57,18 @@ public class MinioStorageService implements StorageService {
         }
     }
 
+    @Override
+    public void delete(UUID objectID) {
+        try {
+            minioClient.removeObject(RemoveObjectArgs.builder()
+                    .bucket(s3Properties.getBucket().getName())
+                    .object(objectID.toString())
+                    .build());
+            log.debug("Deleted object with ID: {}", objectID);
+        } catch (Exception e) {
+            log.warn("Failed to delete object with ID: {}", objectID, e);
+        }
+    }
 
     @PostConstruct
     private void ensureBucketExistence() {
