@@ -58,4 +58,12 @@ public class EmbeddingService {
         return embeddingBacklog.getSourceIds();
     }
 
+    @CacheEvict(
+            cacheNames = CachingConfig.SEARCH_CACHE_NAME,
+            allEntries = true
+    )
+    public void clearCache() {
+        log.debug("Clearing embedding cache");
+    }
+
 }

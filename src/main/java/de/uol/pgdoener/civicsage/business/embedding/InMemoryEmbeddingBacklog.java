@@ -14,12 +14,19 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
 
     @Override
     public void add(EmbeddingTask task) {
-        backlog.offer(task);
+        // Adding a task should never fail.
+        if (!backlog.offer(task))
+            throw new IllegalStateException("Failed to add task to backlog, this should always be possible.");
     }
 
     @Override
-    public EmbeddingTask poll() throws InterruptedException {
+    public EmbeddingTask peek() throws InterruptedException {
         return backlog.take();
+    }
+
+    @Override
+    public void remove(EmbeddingTask task) {
+        backlog.remove(task);
     }
 
     @Override
