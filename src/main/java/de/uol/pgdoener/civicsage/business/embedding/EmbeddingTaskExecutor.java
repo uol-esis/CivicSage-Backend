@@ -44,6 +44,7 @@ public class EmbeddingTaskExecutor {
                             EmbeddingTask task = embeddingBacklog.peek();
                             log.info("Embedding task with {} documents started", task.documents().size());
                             processTask(task);
+                            embeddingBacklog.remove(task);
                             embeddingService.clearCache();
                             log.info("Successfully processed embedding task with {} documents", task.documents().size());
                         } catch (InterruptedException e) {
@@ -84,7 +85,6 @@ public class EmbeddingTaskExecutor {
                 handleException(task, e);
             }
         }
-        embeddingBacklog.remove(task);
     }
 
     private void handleException(EmbeddingTask task, NonTransientAiException e) throws InterruptedException {

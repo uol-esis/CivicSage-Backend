@@ -21,7 +21,12 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
 
     @Override
     public EmbeddingTask peek() throws InterruptedException {
-        return backlog.take();
+        // This is not strictly speaking a thread-safe operation, but only one thread uses this method.
+        // If the EmbeddingTaskExecutor is no longer the only user of this method,
+        // this implementation should be changed to use a more thread-safe approach.
+        EmbeddingTask task = backlog.take();
+        backlog.putFirst(task);
+        return task;
     }
 
     @Override
