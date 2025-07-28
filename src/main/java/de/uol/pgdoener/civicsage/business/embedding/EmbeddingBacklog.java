@@ -5,8 +5,14 @@ import java.util.UUID;
 
 /**
  * An EmbeddingBacklog is a queue-like structure that holds embedding tasks.
- * Implementations of this interface should preserve the order of tasks
- * and allow for concurrent access.
+ * Implementations of this interface must allow for concurrent access of
+ * the add, remove and getSourceIds methods.
+ * The peek method will only be called by a single thread, but has to be
+ * thread-safe in respect to the other methods.
+ * <p>
+ * Furthermore, it is recommended that implementations make sure that
+ * there is no task starvation.
+ * Tasks should be provided in a fair order like a FIFO queue.
  */
 public interface EmbeddingBacklog {
 
@@ -36,7 +42,10 @@ public interface EmbeddingBacklog {
     void remove(EmbeddingTask task);
 
     /**
-     * Defer an embedding task by moving it back to the end.
+     * Defer an embedding task.
+     * Implementations may choose how to handle deferring.
+     * By default, this method will remove the task from the backlog
+     * and add it back, giving it the same priority as new tasks.
      *
      * @param task The embedding task to defer.
      */
