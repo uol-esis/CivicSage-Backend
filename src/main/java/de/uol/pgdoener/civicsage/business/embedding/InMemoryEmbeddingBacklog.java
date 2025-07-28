@@ -35,6 +35,11 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
     }
 
     @Override
+    public void remove(UUID sourceId) {
+        backlog.removeIf(t -> t.sourceId().equals(sourceId));
+    }
+
+    @Override
     public Collection<UUID> getSourceIds() {
         return backlog.stream()
                 .map(EmbeddingTask::sourceId)

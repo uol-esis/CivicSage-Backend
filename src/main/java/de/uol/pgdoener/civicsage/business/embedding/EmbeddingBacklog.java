@@ -36,10 +36,19 @@ public interface EmbeddingBacklog {
 
     /**
      * Removes a specific embedding task from the backlog.
+     * If the task is not present, this method will do nothing.
      *
      * @param task The embedding task to remove.
      */
     void remove(EmbeddingTask task);
+
+    /**
+     * Removes the embedding task associated with a specific source ID from the backlog.
+     * If no task is associated with the given source ID, this method will do nothing.
+     *
+     * @param sourceId The UUID of the source whose task should be removed.
+     */
+    void remove(UUID sourceId);
 
     /**
      * Defer an embedding task.

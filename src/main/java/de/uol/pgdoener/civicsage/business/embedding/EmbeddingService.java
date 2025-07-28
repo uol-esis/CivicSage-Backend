@@ -43,6 +43,7 @@ public class EmbeddingService {
     )
     public void delete(UUID sourceId) {
         log.info("Deleting embeddings for source with id: {}", sourceId);
+        embeddingBacklog.remove(sourceId);
 
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         // The UUID has to be passed as a string. Otherwise, the filter will not work, because the UUID will not be quoted in the SQL query.
