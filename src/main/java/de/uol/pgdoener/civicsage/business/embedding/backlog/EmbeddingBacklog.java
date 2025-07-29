@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.business.embedding.backlog;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 /**
@@ -49,13 +50,16 @@ public interface EmbeddingBacklog {
      *
      * @param sourceId The UUID of the source whose task should be removed.
      */
-    void remove(UUID sourceId);
+    default void remove(UUID sourceId) {
+        final EmbeddingTask dummyTask = new EmbeddingTask(sourceId, Collections.emptyList());
+        remove(dummyTask);
+    }
 
     /**
      * Defer an embedding task.
      * Implementations may choose how to handle deferring.
      * By default, this method will remove the task from the backlog
-     * and add it back, giving it the same priority as new tasks.
+     * and add it back, giving it a low priority.
      *
      * @param task The embedding task to defer.
      */

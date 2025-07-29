@@ -3,59 +3,67 @@ package de.uol.pgdoener.civicsage.business.embedding.backlog;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
 
+    private final Map<UUID, EmbeddingTask> taskMap = new HashMap<>();
     private final Map<EmbeddingPriority, Deque<EmbeddingTask>> backlog = new EnumMap<>(EmbeddingPriority.class);
-    private final Semaphore mutex = new Semaphore(1, true);
-    private final Semaphore entries = new Semaphore(0);
 
-    private InMemoryEmbeddingBacklog() {
+    private final Lock lock = new ReentrantLock();
+    private final Condition notEmpty = lock.newCondition();
+
+    public InMemoryEmbeddingBacklog() {
         for (EmbeddingPriority priority : EmbeddingPriority.values()) {
-            backlog.put(priority, new ArrayDeque<>());
+            backlog.put(priority, new LinkedList<>());
         }
     }
 
     @Override
     public void add(EmbeddingTask task, EmbeddingPriority priority) {
-        mutex.acquireUninterruptibly();
+        lock.lock();
         try {
-            Deque<EmbeddingTask> queue = backlog.get(priority);
-            // Adding a task should never fail.
-            if (!queue.offer(task))
-                throw new IllegalStateException("Failed to add task to backlog, this should always be possible.");
-            entries.release();
+            if (taskMap.containsKey(task.sourceId()))
+                return;
+            taskMap.put(task.sourceId(), task);
+            Queue<EmbeddingTask> queue = backlog.get(priority);
+            queue.add(task);
+            notEmpty.signalAll();
         } finally {
-            mutex.release();
+            lock.unlock();
         }
     }
 
     @Override
     public EmbeddingTask peek() throws InterruptedException {
-        entries.acquire();
-        mutex.acquireUninterruptibly();
+        lock.lockInterruptibly();
         try {
+            while (taskMap.isEmpty()) {
+                notEmpty.await();
+            }
             for (EmbeddingPriority priority : EmbeddingPriority.values()) {
                 Deque<EmbeddingTask> queue = backlog.get(priority);
-                if (!queue.isEmpty()) {
-                    entries.release();
-                    return queue.peekFirst();
+                EmbeddingTask task = queue.peek();
+                if (task != null) {
+                    return task;
                 }
             }
-            // This should never happen, as we only release the semaphore when a task is added.
-            throw new IllegalStateException("No tasks available in the backlog, but semaphore was released.");
+            // This should never happen
+            throw new IllegalStateException("No tasks available in the backlog. This indicates a bug in the implementation.");
         } finally {
-            mutex.release();
+            lock.unlock();
         }
     }
 
     @Override
     public void remove(EmbeddingTask task) {
-        entries.acquireUninterruptibly();
-        mutex.acquireUninterruptibly();
+        lock.lock();
         try {
+            if (!taskMap.containsKey(task.sourceId())) return;
+            taskMap.remove(task.sourceId());
             for (EmbeddingPriority priority : EmbeddingPriority.values()) {
                 Deque<EmbeddingTask> queue = backlog.get(priority);
                 if (queue.remove(task)) {
@@ -64,33 +72,17 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
                 }
             }
         } finally {
-            mutex.release();
-        }
-    }
-
-    @Override
-    public void remove(UUID sourceId) {
-        mutex.acquireUninterruptibly();
-        try {
-            for (EmbeddingPriority priority : EmbeddingPriority.values()) {
-                Deque<EmbeddingTask> queue = backlog.get(priority);
-                queue.removeIf(t -> t.sourceId().equals(sourceId));
-            }
-        } finally {
-            mutex.release();
+            lock.unlock();
         }
     }
 
     @Override
     public Collection<UUID> getSourceIds() {
-        mutex.acquireUninterruptibly();
+        lock.lock();
         try {
-            return backlog.entrySet().stream()
-                    .flatMap(d -> d.getValue().stream())
-                    .map(EmbeddingTask::sourceId)
-                    .toList();
+            return Collections.unmodifiableSet(taskMap.keySet());
         } finally {
-            mutex.release();
+            lock.unlock();
         }
     }
 
