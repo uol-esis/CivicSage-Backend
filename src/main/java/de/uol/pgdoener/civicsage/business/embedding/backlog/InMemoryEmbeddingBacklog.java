@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.embedding;
+package de.uol.pgdoener.civicsage.business.embedding.backlog;
 
 import org.springframework.stereotype.Component;
 

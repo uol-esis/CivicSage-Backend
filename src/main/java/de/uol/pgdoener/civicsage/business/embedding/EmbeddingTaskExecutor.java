@@ -1,6 +1,8 @@
 package de.uol.pgdoener.civicsage.business.embedding;
 
 import de.uol.pgdoener.civicsage.autoconfigure.AIProperties;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingBacklog;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingTask;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

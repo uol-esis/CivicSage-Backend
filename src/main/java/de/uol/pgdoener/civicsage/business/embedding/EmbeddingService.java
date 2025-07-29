@@ -1,5 +1,8 @@
 package de.uol.pgdoener.civicsage.business.embedding;
 
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingBacklog;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingTask;
 import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.config.CachingConfig;
 import lombok.RequiredArgsConstructor;

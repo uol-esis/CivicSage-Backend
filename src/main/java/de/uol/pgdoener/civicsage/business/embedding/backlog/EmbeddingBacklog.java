@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.embedding;
+package de.uol.pgdoener.civicsage.business.embedding.backlog;
 
 import java.util.Collection;
 import java.util.UUID;

@@ -2,8 +2,8 @@ package de.uol.pgdoener.civicsage.business.index;
 
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
-import de.uol.pgdoener.civicsage.business.embedding.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;

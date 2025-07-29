@@ -3,7 +3,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
-import de.uol.pgdoener.civicsage.business.embedding.EmbeddingPriority;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.IndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
