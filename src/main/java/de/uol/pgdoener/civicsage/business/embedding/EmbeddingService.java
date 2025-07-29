@@ -24,9 +24,9 @@ public class EmbeddingService {
     private final VectorStore vectorStore;
     private final EmbeddingBacklog embeddingBacklog;
 
-    public void save(List<Document> documents, UUID sourceId) {
+    public void save(List<Document> documents, UUID sourceId, EmbeddingPriority priority) {
         EmbeddingTask task = new EmbeddingTask(sourceId, documents);
-        embeddingBacklog.add(task);
+        embeddingBacklog.add(task, priority);
     }
 
     @Cacheable(

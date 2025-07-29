@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.business.index;
 
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.business.embedding.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
 import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
@@ -49,7 +50,7 @@ public class IndexService {
     // Files
     // ######
 
-    public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
+    public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto, EmbeddingPriority priority) {
         UUID fileId = indexFilesRequestInnerDto.getFileId();
         Optional<String> title = indexFilesRequestInnerDto.getTitle();
         final Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties() == null ?
@@ -84,7 +85,7 @@ public class IndexService {
         documents.forEach(document ->
                 document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId()));
 
-        embeddingService.save(documents, finalFileSource.getObjectStorageId());
+        embeddingService.save(documents, finalFileSource.getObjectStorageId(), priority);
     }
 
     private String titleOrFileName(Optional<String> title, String fileName) {
@@ -120,7 +121,7 @@ public class IndexService {
     // Websites
     // #########
 
-    public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
+    public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto, EmbeddingPriority priority) {
         String url = indexWebsiteRequestDto.getUrl();
         url = normalizeURL(url);
         final Map<String, Object> additionalProperties = indexWebsiteRequestDto.getAdditionalProperties() == null ?
@@ -147,7 +148,7 @@ public class IndexService {
         documents.forEach(document ->
                 document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
 
-        embeddingService.save(documents, finalWebsiteSource.getId());
+        embeddingService.save(documents, finalWebsiteSource.getId(), priority);
     }
 
     public String normalizeURL(String url) {

@@ -19,9 +19,10 @@ public interface EmbeddingBacklog {
     /**
      * Adds a new embedding task to the backlog.
      *
-     * @param task The embedding task to add.
+     * @param task     The embedding task to add.
+     * @param priority The priority of the embedding task.
      */
-    void add(EmbeddingTask task);
+    void add(EmbeddingTask task, EmbeddingPriority priority);
 
     /**
      * Retrieves the next embedding task from the backlog.
@@ -60,7 +61,7 @@ public interface EmbeddingBacklog {
      */
     default void defer(EmbeddingTask task) {
         remove(task);
-        add(task);
+        add(task, EmbeddingPriority.LOW);
     }
 
     /**

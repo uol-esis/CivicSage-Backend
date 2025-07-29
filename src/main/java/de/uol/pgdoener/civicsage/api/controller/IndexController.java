@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.business.embedding.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.IndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,7 @@ public class IndexController implements IndexApiDelegate {
             log.info("Received {} files to index", requests.size());
             for (IndexFilesRequestInnerDto request : requests) {
                 log.info("Indexing file {}", request.getTitle());
-                indexService.indexFile(request);
+                indexService.indexFile(request, EmbeddingPriority.HIGH);
                 log.info("File {} indexed successfully", request.getTitle());
             }
         });
@@ -39,7 +40,7 @@ public class IndexController implements IndexApiDelegate {
     public ResponseEntity<Void> indexWebsite(IndexWebsiteRequestDto indexWebsiteRequestDto) {
         executorService.submit(() -> {
             log.info("Indexing website {}", indexWebsiteRequestDto.getUrl());
-            indexService.indexURL(indexWebsiteRequestDto);
+            indexService.indexURL(indexWebsiteRequestDto, EmbeddingPriority.HIGH);
             log.info("Website {} indexed successfully", indexWebsiteRequestDto.getUrl());
         });
 
