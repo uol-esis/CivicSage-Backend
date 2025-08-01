@@ -26,6 +26,7 @@ public class EmbeddingService {
 
     private final VectorStore vectorStore;
     private final EmbeddingBacklog embeddingBacklog;
+    private final UnusedModelsVectorStores unusedModelsVectorStores;
 
     public void save(List<Document> documents, UUID sourceId, EmbeddingPriority priority) {
         EmbeddingTask task = new EmbeddingTask(sourceId, documents);
@@ -53,6 +54,7 @@ public class EmbeddingService {
         FilterExpressionBuilder.Op op = b.eq(MetadataKeys.SOURCE_ID.getValue(), sourceId.toString());
 
         vectorStore.delete(op.build());
+        unusedModelsVectorStores.delete(op.build());
     }
 
     @Cacheable(
