@@ -44,9 +44,11 @@ public class EmbeddingTaskExecutor {
                     while (!Thread.currentThread().isInterrupted()) {
                         try {
                             EmbeddingTask task = embeddingBacklog.peek();
+                            task.isProcessing().set(true);
                             log.info("Embedding task with {} documents started", task.documents().size());
                             processTask(task);
                             embeddingBacklog.remove(task);
+                            task.doneLatch().countDown();
                             embeddingService.clearCache();
                             log.info("Successfully processed embedding task with {} documents", task.documents().size());
                         } catch (InterruptedException e) {
@@ -77,7 +79,7 @@ public class EmbeddingTaskExecutor {
     }
 
     private void processTask(EmbeddingTask task) throws InterruptedException {
-        while (true) {
+        while (!task.isCancelled().get()) {
             try {
                 vectorStore.add(task.documents());
                 unknownErrorCount.set(0);

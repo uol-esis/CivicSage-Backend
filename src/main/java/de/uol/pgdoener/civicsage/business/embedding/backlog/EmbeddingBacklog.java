@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.business.embedding.backlog;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -41,18 +42,20 @@ public interface EmbeddingBacklog {
      * If the task is not present, this method will do nothing.
      *
      * @param task The embedding task to remove.
+     * @return An Optional containing the removed task if it was present, or an empty Optional if it was not.
      */
-    void remove(EmbeddingTask task);
+    Optional<EmbeddingTask> remove(EmbeddingTask task);
 
     /**
      * Removes the embedding task associated with a specific source ID from the backlog.
      * If no task is associated with the given source ID, this method will do nothing.
      *
      * @param sourceId The UUID of the source whose task should be removed.
+     * @return An Optional containing the removed task if it was present, or an empty Optional if it was not.
      */
-    default void remove(UUID sourceId) {
+    default Optional<EmbeddingTask> remove(UUID sourceId) {
         final EmbeddingTask dummyTask = new EmbeddingTask(sourceId, Collections.emptyList());
-        remove(dummyTask);
+        return remove(dummyTask);
     }
 
     /**

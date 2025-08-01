@@ -59,21 +59,23 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
     }
 
     @Override
-    public void remove(EmbeddingTask task) {
+    public Optional<EmbeddingTask> remove(EmbeddingTask task) {
         lock.lock();
         try {
-            if (!taskMap.containsKey(task.sourceId())) return;
+            if (!taskMap.containsKey(task.sourceId()))
+                return Optional.empty();
             taskMap.remove(task.sourceId());
             for (EmbeddingPriority priority : EmbeddingPriority.values()) {
                 Deque<EmbeddingTask> queue = backlog.get(priority);
                 if (queue.remove(task)) {
                     // If the task was found and removed, we can exit early.
-                    return;
+                    return Optional.of(task);
                 }
             }
         } finally {
             lock.unlock();
         }
+        return Optional.empty();
     }
 
     @Override

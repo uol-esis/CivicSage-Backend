@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -47,7 +48,17 @@ public class EmbeddingService {
     )
     public void delete(UUID sourceId) {
         log.info("Deleting embeddings for source with id: {}", sourceId);
-        embeddingBacklog.remove(sourceId);
+        Optional<EmbeddingTask> optTask = embeddingBacklog.remove(sourceId);
+        if (optTask.isPresent() && optTask.get().isProcessing().get()) {
+            optTask.get().isCancelled().set(true);
+            try {
+                optTask.get().doneLatch().await();
+            } catch (InterruptedException e) {
+                // Interrupting the thread may cause the deletion to happen too early
+                Thread.currentThread().interrupt();
+                log.warn("Interrupted while waiting for embedding task to finish to delete source", e);
+            }
+        }
 
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         // The UUID has to be passed as a string. Otherwise, the filter will not work, because the UUID will not be quoted in the SQL query.
