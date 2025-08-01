@@ -43,9 +43,9 @@ public class UnusedModelsVectorStores {
     public void init() {
         List<TableLocation> vectorStoreTables = getVectorStoreTables();
         // remove the vector store table for the current model
-        vectorStoreTables.removeIf(i ->
-                i.tableName.equals(vectorStoreTableNameProvider.getTableName()) &&
-                        Objects.equals(i.schemaName, aiProperties.getVectorStore().getSchemaName())
+        vectorStoreTables.removeIf(l ->
+                l.tableName.equals(vectorStoreTableNameProvider.getTableName()) &&
+                        Objects.equals(l.schemaName, aiProperties.getVectorStore().getSchemaName())
         );
         log.info("VectorStore tables for unused models: {}", vectorStoreTables);
 
@@ -86,14 +86,14 @@ public class UnusedModelsVectorStores {
 
     private VectorStore createVectorStore(TableLocation tableLocation) {
         return switch (aiProperties.getVectorStore().getType()) {
-            case MARIADB -> MariaDBVectorStore.builder(jdbcTemplate, new DummyEmbeddingModel())
+            case MARIADB -> MariaDBVectorStore.builder(jdbcTemplate, new NoOpEmbeddingModel())
                     .initializeSchema(false)
                     .removeExistingVectorStoreTable(false)
                     .schemaName(tableLocation.schemaName())
                     .schemaValidation(false)
                     .vectorTableName(tableLocation.tableName())
                     .build();
-            case POSTGRESQL -> PgVectorStore.builder(jdbcTemplate, new DummyEmbeddingModel())
+            case POSTGRESQL -> PgVectorStore.builder(jdbcTemplate, new NoOpEmbeddingModel())
                     .initializeSchema(false)
                     .removeExistingVectorStoreTable(false)
                     .schemaName(tableLocation.schemaName())
@@ -107,7 +107,7 @@ public class UnusedModelsVectorStores {
     }
 
     @NonNullApi
-    private static final class DummyEmbeddingModel implements EmbeddingModel {
+    private static final class NoOpEmbeddingModel implements EmbeddingModel {
         @Override
         public EmbeddingResponse call(EmbeddingRequest request) {
             throw new UnsupportedOperationException();
