@@ -52,6 +52,7 @@ public class EmbeddingService {
         if (optTask.isPresent() && optTask.get().isProcessing().get()) {
             optTask.get().isCancelled().set(true);
             try {
+                log.debug("Waiting for embedding task to finish before deleting source with id: {}", sourceId);
                 optTask.get().doneLatch().await();
             } catch (InterruptedException e) {
                 // Interrupting the thread may cause the deletion to happen too early

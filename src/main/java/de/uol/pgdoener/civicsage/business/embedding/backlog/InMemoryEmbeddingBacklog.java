@@ -67,9 +67,14 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
             taskMap.remove(task.sourceId());
             for (EmbeddingPriority priority : EmbeddingPriority.values()) {
                 Deque<EmbeddingTask> queue = backlog.get(priority);
-                if (queue.remove(task)) {
-                    // If the task was found and removed, we can exit early.
-                    return Optional.of(task);
+                Iterator<EmbeddingTask> iterator = queue.iterator();
+                while (iterator.hasNext()) {
+                    EmbeddingTask currentTask = iterator.next();
+                    if (currentTask.equals(task)) {
+                        iterator.remove();
+                        // If the task was found and removed, we can exit early.
+                        return Optional.of(currentTask);
+                    }
                 }
             }
         } finally {
