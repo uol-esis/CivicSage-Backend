@@ -77,6 +77,17 @@ public class InMemoryEmbeddingBacklog implements EmbeddingBacklog {
     }
 
     @Override
+    public void defer(EmbeddingTask task) {
+        lock.lock();
+        try {
+            remove(task);
+            add(task, EmbeddingPriority.LOW);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public Collection<UUID> getSourceIds() {
         lock.lock();
         try {

@@ -63,10 +63,7 @@ public interface EmbeddingBacklog {
      *
      * @param task The embedding task to defer.
      */
-    default void defer(EmbeddingTask task) {
-        remove(task);
-        add(task, EmbeddingPriority.LOW);
-    }
+    void defer(EmbeddingTask task);
 
     /**
      * Retrieves the IDs of all sources that have pending embedding tasks.
