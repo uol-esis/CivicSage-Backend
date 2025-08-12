@@ -16,16 +16,16 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "civicsage.ai.vectorstore.type", havingValue = "POSTGRESQL")
-public class PgVectorStoreExtension implements VectorStoreExtension {
+@ConditionalOnProperty(name = "civicsage.ai.vectorstore.type", havingValue = "MARIADB")
+public class MariaDBVectorStoreExtension implements VectorStoreExtension {
 
     private final JdbcTemplate template;
     private final String tableName;
 
-    public PgVectorStoreExtension(VectorStore pgVectorStore, VectorStoreTableNameProvider tableNameProvider) {
+    public MariaDBVectorStoreExtension(VectorStore mariaDBVectorStore, VectorStoreTableNameProvider tableNameProvider) {
         this.tableName = tableNameProvider.getTableName();
-        Optional<JdbcTemplate> optTemplate = pgVectorStore.getNativeClient();
-        template = optTemplate.orElseThrow(() -> new RuntimeException("Could not get native client from PgVectorStore"));
+        Optional<JdbcTemplate> optTemplate = mariaDBVectorStore.getNativeClient();
+        template = optTemplate.orElseThrow(() -> new RuntimeException("Could not get native client from MariaDBVectorStore"));
     }
 
     //https://www.baeldung.com/spring-jdbctemplate-in-list

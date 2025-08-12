@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.bootstrap;
 
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.IndexService;
 import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.business.source.FileHashingService;
@@ -62,11 +63,11 @@ public class BootstrapService {
                         }
                     }
 
-                    IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto(fileId, f.getName());
+                    IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto(fileId);
                     // not sure if additional properties are the right place to mark this document to be loaded at startup.
                     // Maybe a dedicated metadata entry would be better... Or no marking necessary at all?
                     request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
-                    indexService.indexFile(request);
+                    indexService.indexFile(request, EmbeddingPriority.LOW);
                 } catch (SourceCollisionException e) {
                     log.debug("File {} already indexed", f.getName());
                 } catch (RuntimeException e) {
@@ -111,9 +112,9 @@ public class BootstrapService {
         for (FileSource fileSource : fileSourcesToIndex) {
             IndexFilesRequestInnerDto request = new IndexFilesRequestInnerDto();
             request.setFileId(fileSource.getObjectStorageId());
-            request.setName(fileSource.getFileName());
+            request.title(fileSource.getFileName());
             request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
-            indexService.indexFile(request);
+            indexService.indexFile(request, EmbeddingPriority.LOW);
         }
     }
 
@@ -123,7 +124,7 @@ public class BootstrapService {
             IndexWebsiteRequestDto request = new IndexWebsiteRequestDto();
             request.setUrl(websiteSource.getUrl());
             request.putAdditionalProperty(MetadataKeys.STARTUP_DOCUMENT.getValue(), true);
-            indexService.indexURL(request);
+            indexService.indexURL(request, EmbeddingPriority.LOW);
         }
     }
 

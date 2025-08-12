@@ -17,9 +17,11 @@ public class EmbeddingConfig {
     private static final double CONTEXT_WINDOW_FILLED_RATIO = 0.85;
 
     private final int contextLength;
+    private final int documentContextLength;
 
     public EmbeddingConfig(AIProperties aiProperties) {
         this.contextLength = aiProperties.getEmbedding().getModel().getContextLength();
+        this.documentContextLength = aiProperties.getEmbedding().getDocumentContextLength();
     }
 
     // https://docs.spring.io/spring-ai/reference/api/vectordbs.html#_default_implementation
@@ -36,7 +38,7 @@ public class EmbeddingConfig {
     @Bean
     public TextSplitter textSplitter() {
         return TokenTextSplitter.builder()
-                .withChunkSize((int) (contextLength * CONTEXT_WINDOW_FILLED_RATIO))
+                .withChunkSize((int) (documentContextLength * CONTEXT_WINDOW_FILLED_RATIO))
                 .build();
     }
 

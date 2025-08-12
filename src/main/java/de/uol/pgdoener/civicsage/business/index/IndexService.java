@@ -3,7 +3,9 @@ package de.uol.pgdoener.civicsage.business.index;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
+import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
@@ -24,9 +26,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.ADDITIONAL_PROPERTIES;
-import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.FILE_ID;
+import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.*;
 
 @Slf4j
 @Service
@@ -47,8 +50,9 @@ public class IndexService {
     // Files
     // ######
 
-    public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto) {
+    public void indexFile(IndexFilesRequestInnerDto indexFilesRequestInnerDto, EmbeddingPriority priority) {
         UUID fileId = indexFilesRequestInnerDto.getFileId();
+        Optional<String> title = indexFilesRequestInnerDto.getTitle();
         final Map<String, Object> additionalMetadata = indexFilesRequestInnerDto.getAdditionalProperties() == null ?
                 new HashMap<>() : indexFilesRequestInnerDto.getAdditionalProperties();
 
@@ -68,14 +72,34 @@ public class IndexService {
         documents = postProcessDocuments(documents);
         documents.forEach(document -> {
             document.getMetadata().put(FILE_ID.getValue(), fileId);
+            document.getMetadata().put(TITLE.getValue(), titleOrFileName(title, fileName));
             document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalMetadata);
         });
 
         // Update the file source with the new model ID
         fileSource.getModels().add(modelID);
-        sourceService.save(fileSource);
+        fileSource.getMetadata().putAll(getMetadataFromDocuments(documents));
+        fileSource = sourceService.save(fileSource);
 
-        embeddingService.save(documents);
+        final FileSource finalFileSource = fileSource;
+        documents.forEach(document ->
+                document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId()));
+
+        embeddingService.save(documents, finalFileSource.getObjectStorageId(), priority);
+    }
+
+    private String titleOrFileName(Optional<String> title, String fileName) {
+        return title.orElseGet(() -> {
+            if (fileName == null || fileName.isBlank()) {
+                return "Untitled";
+            }
+            // Remove file extension and trim whitespace
+            int lastDotIndex = fileName.lastIndexOf('.');
+            if (lastDotIndex > 0) {
+                return fileName.substring(0, lastDotIndex).trim();
+            }
+            return fileName.trim();
+        });
     }
 
     private Resource toResource(InputStream inputStream, String fileName) {
@@ -97,14 +121,14 @@ public class IndexService {
     // Websites
     // #########
 
-    public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto) {
+    public void indexURL(IndexWebsiteRequestDto indexWebsiteRequestDto, EmbeddingPriority priority) {
         String url = indexWebsiteRequestDto.getUrl();
         url = normalizeURL(url);
         final Map<String, Object> additionalProperties = indexWebsiteRequestDto.getAdditionalProperties() == null ?
                 new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
-                .orElse(new WebsiteSource(null, url, new ArrayList<>()));
+                .orElse(new WebsiteSource(null, url, new ArrayList<>(), new HashMap<>()));
         if (websiteSource.getModels().contains(modelID)) {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
@@ -117,9 +141,14 @@ public class IndexService {
                 document.getMetadata().put(ADDITIONAL_PROPERTIES.getValue(), additionalProperties));
 
         websiteSource.getModels().add(modelID);
-        sourceService.save(websiteSource);
+        websiteSource.getMetadata().putAll(getMetadataFromDocuments(documents));
+        websiteSource = sourceService.save(websiteSource);
 
-        embeddingService.save(documents);
+        final WebsiteSource finalWebsiteSource = websiteSource;
+        documents.forEach(document ->
+                document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
+
+        embeddingService.save(documents, finalWebsiteSource.getId(), priority);
     }
 
     public String normalizeURL(String url) {
@@ -142,7 +171,7 @@ public class IndexService {
 
     private List<Document> postProcessDocuments(List<Document> documents) {
         documents = semanticSplitterService.process(documents);
-        log.debug("Website split into {} semantic chunks", documents.size());
+        log.debug("Source split into {} semantic chunks", documents.size());
 
         final int numDocumentsBeforeSplitting = documents.size();
         documents = documents.stream()
@@ -156,6 +185,30 @@ public class IndexService {
             log.warn("There are less documents after splitting than before.");
 
         return documents;
+    }
+
+    /**
+     * This method extracts the metadata from the first document in the list.
+     * It filters the metadata keys to only include those that are exposed via the API.
+     *
+     * @param documents the list of documents to extract metadata from
+     * @return a map of metadata keys and values that are exposed via the API
+     */
+    private Map<String, Object> getMetadataFromDocuments(List<Document> documents) {
+        final Map<String, Object> metadataOfFirstDocument = documents.getFirst().getMetadata();
+        Map<String, Object> exposedMetadata = MetadataKeys.EXPOSED_KEYS.stream()
+                .map(MetadataKeys::getValue)
+                .filter(metadataOfFirstDocument::containsKey)
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        metadataOfFirstDocument::get
+                ));
+        if (metadataOfFirstDocument.containsKey(ADDITIONAL_PROPERTIES.getValue()))
+            exposedMetadata.put(
+                    ADDITIONAL_PROPERTIES.getValue(),
+                    metadataOfFirstDocument.get(ADDITIONAL_PROPERTIES.getValue())
+            );
+        return exposedMetadata;
     }
 
 }

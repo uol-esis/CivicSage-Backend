@@ -25,7 +25,7 @@ public class SearchResultMapper {
     public SearchResultDto toDto(@NonNull Document document) {
         SearchResultDto searchResultDto = new SearchResultDto();
         searchResultDto.documentId(UUID.fromString(document.getId()));
-        searchResultDto.setScore(document.getScore());
+        searchResultDto.setScore(getScore(document));
         searchResultDto.setText(document.getText());
 
         Map<String, Object> metadata = document.getMetadata();
@@ -55,6 +55,22 @@ public class SearchResultMapper {
         }
 
         return searchResultDto;
+    }
+
+    // This method is necessary because the MariaDB vector store does not return a score by default.
+    // Instead, it returns a distance, which we convert to a score.
+    private double getScore(@NonNull Document document) {
+        Double score = document.getScore();
+        if (score == null) {
+            Object distance = document.getMetadata().get("distance");
+            if (distance instanceof Number d) {
+                score = 1.0 - d.doubleValue();
+            } else {
+                log.error("Document has no score and no distance: {}", document);
+                score = 0.0; // Default score if no score is available
+            }
+        }
+        return score;
     }
 
     private String constructTitleForFile(String fileName) {

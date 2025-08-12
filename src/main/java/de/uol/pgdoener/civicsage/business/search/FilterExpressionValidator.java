@@ -8,8 +8,8 @@ import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionTextParser;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
+
 
 /**
  * This class validates filter expressions based on exposed metadata keys ({@link MetadataKeys}) and
@@ -20,8 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FilterExpressionValidator {
 
-    private static final List<String> validMetadataKeys = Arrays.stream(MetadataKeys.values())
-            .filter(MetadataKeys::isExposed)
+    private static final List<String> validMetadataKeys = MetadataKeys.EXPOSED_KEYS.stream()
             .map(MetadataKeys::getValue)
             .toList();
 

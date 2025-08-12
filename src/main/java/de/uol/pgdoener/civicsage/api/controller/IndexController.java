@@ -1,9 +1,9 @@
 package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.IndexApiDelegate;
-import de.uol.pgdoener.civicsage.autoconfigure.ServerProperties;
 import de.uol.pgdoener.civicsage.business.dto.IndexFilesRequestInnerDto;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.business.embedding.backlog.EmbeddingPriority;
 import de.uol.pgdoener.civicsage.business.index.IndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Component
@@ -19,49 +20,31 @@ import java.util.concurrent.*;
 public class IndexController implements IndexApiDelegate {
 
     private final IndexService indexService;
-    private final ServerProperties serverProperties;
     private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     @Override
     public ResponseEntity<Void> indexFiles(List<IndexFilesRequestInnerDto> requests) {
-        CompletableFuture<ResponseEntity<Void>> future = CompletableFuture.supplyAsync(() -> {
+        executorService.submit(() -> {
             log.info("Received {} files to index", requests.size());
             for (IndexFilesRequestInnerDto request : requests) {
-                log.info("Indexing file {}", request.getName());
-                indexService.indexFile(request);
-                log.info("File {} indexed successfully", request.getName());
+                log.info("Indexing file {}", request.getTitle());
+                indexService.indexFile(request, EmbeddingPriority.HIGH);
+                log.info("File {} indexed successfully", request.getTitle());
             }
-            return ResponseEntity.ok().build();
-        }, executorService);
+        });
 
-        return handleFuture(future);
+        return ResponseEntity.accepted().build();
     }
 
     @Override
     public ResponseEntity<Void> indexWebsite(IndexWebsiteRequestDto indexWebsiteRequestDto) {
-        CompletableFuture<ResponseEntity<Void>> future = CompletableFuture.supplyAsync(() -> {
+        executorService.submit(() -> {
             log.info("Indexing website {}", indexWebsiteRequestDto.getUrl());
-            indexService.indexURL(indexWebsiteRequestDto);
+            indexService.indexURL(indexWebsiteRequestDto, EmbeddingPriority.HIGH);
             log.info("Website {} indexed successfully", indexWebsiteRequestDto.getUrl());
-            return ResponseEntity.ok().build();
-        }, executorService);
+        });
 
-        return handleFuture(future);
-    }
-
-    private ResponseEntity<Void> handleFuture(CompletableFuture<ResponseEntity<Void>> future) {
-        try {
-            return future.get(serverProperties.getIndexRequestTimeout(), TimeUnit.MILLISECONDS);
-        } catch (TimeoutException e) {
-            return ResponseEntity.accepted().build();
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException re) throw re;
-            else throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        }
+        return ResponseEntity.accepted().build();
     }
 
 }
