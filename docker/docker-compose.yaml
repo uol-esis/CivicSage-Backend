@@ -3,6 +3,7 @@
 # DO NOT USE DEFAULT CREDENTIALS IN PRODUCTION!
 
 # It is required to have the object storage service running before starting this stack.
+
 name: CivicSage Stack
 services:
   civicsage:
