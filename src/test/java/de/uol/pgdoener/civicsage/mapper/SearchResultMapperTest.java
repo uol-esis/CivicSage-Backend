@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.mapper;
 
 
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
+import de.uol.pgdoener.civicsage.business.search.SearchResultMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static de.uol.pgdoener.civicsage.index.document.MetadataKeys.*;
+import static de.uol.pgdoener.civicsage.business.index.document.MetadataKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SearchResultMapperTest {
@@ -21,8 +22,8 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        FILE_NAME, "file.pdf",
-                        FILE_ID, UUID.randomUUID().toString()
+                        FILE_NAME.getValue(), "file.pdf",
+                        FILE_ID.getValue(), UUID.randomUUID().toString()
                 ))
                 .score(0.42)
                 .build();
@@ -42,7 +43,7 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        URL, "example.com"
+                        URL.getValue(), "example.com"
                 ))
                 .score(0.1)
                 .build();
@@ -63,15 +64,15 @@ class SearchResultMapperTest {
                 Document.builder()
                         .text("content1")
                         .metadata(Map.of(
-                                FILE_NAME, "file.pdf",
-                                FILE_ID, UUID.randomUUID().toString()
+                                FILE_NAME.getValue(), "file.pdf",
+                                FILE_ID.getValue(), UUID.randomUUID().toString()
                         ))
                         .score(0.42)
                         .build(),
                 Document.builder()
                         .text("content2")
                         .metadata(Map.of(
-                                URL, "example.com"
+                                URL.getValue(), "example.com"
                         ))
                         .score(0.1)
                         .build()

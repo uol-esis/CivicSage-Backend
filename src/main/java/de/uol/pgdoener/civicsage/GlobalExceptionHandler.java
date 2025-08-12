@@ -1,12 +1,15 @@
 package de.uol.pgdoener.civicsage;
 
-import de.uol.pgdoener.civicsage.index.exception.ReadFileException;
-import de.uol.pgdoener.civicsage.index.exception.ReadUrlException;
-import de.uol.pgdoener.civicsage.index.exception.StorageException;
-import de.uol.pgdoener.civicsage.search.exception.NotEnoughResultsAvailableException;
-import de.uol.pgdoener.civicsage.source.exception.HashingException;
-import de.uol.pgdoener.civicsage.source.exception.SourceCollisionException;
-import de.uol.pgdoener.civicsage.source.exception.SourceNotFoundException;
+import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
+import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
+import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
+import de.uol.pgdoener.civicsage.business.search.exception.FilterExpressionException;
+import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.business.source.exception.HashingException;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceCollisionException;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,27 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SplittingException.class)
+    public ResponseEntity<Object> handleSplittingException(SplittingException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.I_AM_A_TEAPOT, ex.getMessage());
+        log.debug("SplittingException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(FilterExpressionException.class)
+    public ResponseEntity<Object> handleFilterExpressionException(FilterExpressionException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+        log.debug("FilterExpressionException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<Object> handleDocumentNotFoundException(DocumentNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
+        log.debug("DocumentNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(StorageException.class)
     public ResponseEntity<Object> handleStorageException(StorageException ex) {
@@ -71,7 +95,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReadUrlException.class)
     public ResponseEntity<Object> handleReadUrlException(ReadUrlException ex) {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
-        log.debug("ReadUrlException: {}", ex.getMessage());
+        log.debug("ReadUrlException", ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse.getBody());
     }
 
