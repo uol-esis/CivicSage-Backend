@@ -19,6 +19,14 @@ public class AIProperties {
         private Model model = new Model();
         private int maxEmbeddings = 10;
 
+        private String defaultSystemPrompt = """
+                Beantworte die folgende Frage ausschließlich basierend auf den bereitgestellten Dokumenten. Nutze keine externen Informationen.
+                
+                Antwort:
+                - Wenn die Antwort vollständig im Dokument enthalten ist: Formuliere sie klar und korrekt.
+                - Wenn keine ausreichenden Informationen vorhanden sind: Sage "Dazu liegen keine Informationen vor."
+                """;
+
         @Data
         public static class Model {
             /**

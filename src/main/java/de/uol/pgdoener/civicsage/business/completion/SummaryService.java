@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
+import de.uol.pgdoener.civicsage.autoconfigure.AIProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public class SummaryService {
 
     private final ChatClient chatClient;
+    private final AIProperties aiProperties;
 
     /**
      * This calls the {@link ChatClient} created in the
@@ -31,9 +33,11 @@ public class SummaryService {
     public String summarize(List<UUID> documentIds, String userPrompt, Optional<String> systemPrompt) {
         var spec = this.chatClient.prompt()
                 .advisors(advisor -> advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, documentIds))
-                .user(userPrompt);
+                .user("Frage: " + userPrompt);
 
-        systemPrompt.ifPresent(spec::system);
+        systemPrompt.ifPresentOrElse(spec::system, () ->
+                spec.system(aiProperties.getChat().getDefaultSystemPrompt())
+        );
 
         return spec.call()
                 .content();
