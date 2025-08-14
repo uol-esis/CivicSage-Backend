@@ -2,7 +2,9 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.SourcesApiDelegate;
 import de.uol.pgdoener.civicsage.business.dto.GetAllIndexedSources200ResponseDto;
+import de.uol.pgdoener.civicsage.business.dto.UpdateIndexedWebsiteRequestDto;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
+import de.uol.pgdoener.civicsage.business.index.IndexService;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.SourceMapper;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,6 +28,7 @@ public class SourcesController implements SourcesApiDelegate {
     private final SourceMapper sourceMapper;
     private final EmbeddingService embeddingService;
     private final StorageService storageService;
+    private final IndexService indexService;
 
     @Override
     public ResponseEntity<GetAllIndexedSources200ResponseDto> getAllIndexedSources(Optional<String> filterExpression) {
@@ -59,4 +63,12 @@ public class SourcesController implements SourcesApiDelegate {
         return ResponseEntity.status(204).build();
     }
 
+    @Override
+    public ResponseEntity<Void> updateIndexedWebsite(UpdateIndexedWebsiteRequestDto updateIndexedWebsiteRequestDto) {
+        List<UUID> ids = updateIndexedWebsiteRequestDto.getIds();
+
+        indexService.updateWebsites(ids);
+
+        return ResponseEntity.status(202).build();
+    }
 }

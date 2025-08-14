@@ -74,4 +74,8 @@ public class SourceService {
     public boolean existsById(UUID id) {
         return fileSourceRepository.existsById(id) || websiteSourceRepository.existsById(id);
     }
+
+    public Iterable<WebsiteSource> getWebsiteSourcesByIds(List<UUID> ids) {
+        return websiteSourceRepository.findAllById(ids);
+    }
 }

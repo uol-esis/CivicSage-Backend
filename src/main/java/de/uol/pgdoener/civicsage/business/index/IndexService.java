@@ -133,6 +133,45 @@ public class IndexService {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
 
+        doWebsiteIndexing(priority, url, additionalProperties, websiteSource);
+    }
+
+    public String normalizeURL(String url) {
+        // make sure url starts with a protocol
+        if (!url.matches("^[a-z]+://.+")) {
+            url = "https://" + url;
+        }
+
+        // make sure there is no trailing slash "/"
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+
+        return url;
+    }
+
+    public void updateWebsites(List<UUID> ids) {
+        Iterable<WebsiteSource> websiteSources;
+        if (ids.isEmpty()) {
+            websiteSources = sourceService.getAllWebsiteSources("");
+        } else {
+            websiteSources = sourceService.getWebsiteSourcesByIds(ids);
+        }
+
+        for (WebsiteSource websiteSource : websiteSources) {
+            String url = websiteSource.getUrl();
+            url = normalizeURL(url);
+            Object additionalProperties = websiteSource.getMetadata().get(ADDITIONAL_PROPERTIES.getValue());
+            if (additionalProperties == null) {
+                additionalProperties = new HashMap<>();
+            }
+            websiteSource.getModels().remove(modelID);
+            // TODO update uploadDate when PR is merged
+            doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, websiteSource);
+        }
+    }
+
+    private void doWebsiteIndexing(EmbeddingPriority priority, String url, Object additionalProperties, WebsiteSource websiteSource) {
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
 
@@ -149,20 +188,6 @@ public class IndexService {
                 document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
 
         embeddingService.save(documents, finalWebsiteSource.getId(), priority);
-    }
-
-    public String normalizeURL(String url) {
-        // make sure url starts with a protocol
-        if (!url.matches("^[a-z]+://.+")) {
-            url = "https://" + url;
-        }
-
-        // make sure there is no trailing slash "/"
-        if (url.endsWith("/")) {
-            url = url.substring(0, url.length() - 1);
-        }
-
-        return url;
     }
 
     // ########
