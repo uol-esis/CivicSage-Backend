@@ -157,8 +157,11 @@ public class IndexService {
         } else {
             websiteSources = sourceService.getWebsiteSourcesByIds(ids);
         }
+        log.info("Updating {} website sources", ((Collection<?>) websiteSources).size());
 
         for (WebsiteSource websiteSource : websiteSources) {
+            embeddingService.delete(websiteSource.getId());
+
             String url = websiteSource.getUrl();
             url = normalizeURL(url);
             Object additionalProperties = websiteSource.getMetadata().get(ADDITIONAL_PROPERTIES.getValue());
