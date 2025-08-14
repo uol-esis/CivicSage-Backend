@@ -136,6 +136,54 @@ public class IndexService {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
 
+        doWebsiteIndexing(priority, url, additionalProperties, websiteSource);
+    }
+
+    public String normalizeURL(String url) {
+        // make sure url starts with a protocol
+        if (!url.matches("^[a-z]+://.+")) {
+            url = "https://" + url;
+        }
+
+        // make sure there is no trailing slash "/"
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+
+        return url;
+    }
+
+    public void updateWebsites(List<UUID> ids) {
+        Iterable<WebsiteSource> websiteSources;
+        if (ids.isEmpty()) {
+            websiteSources = sourceService.getAllWebsiteSources("");
+        } else {
+            websiteSources = sourceService.getWebsiteSourcesByIds(ids);
+        }
+        log.info("Updating {} website sources", ids.isEmpty() ? "all" : ids.size());
+
+        for (WebsiteSource websiteSource : websiteSources) {
+            embeddingService.delete(websiteSource.getId());
+
+            String url = websiteSource.getUrl();
+            url = normalizeURL(url);
+            Object additionalProperties = websiteSource.getMetadata().get(ADDITIONAL_PROPERTIES.getValue());
+            if (additionalProperties == null) {
+                additionalProperties = new HashMap<>();
+            }
+            websiteSource.getModels().remove(modelID);
+            WebsiteSource ws = new WebsiteSource(
+                    websiteSource.getId(),
+                    url,
+                    OffsetDateTime.now(),
+                    websiteSource.getModels(),
+                    new HashMap<>(websiteSource.getMetadata())
+            );
+            doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, ws);
+        }
+    }
+
+    private void doWebsiteIndexing(EmbeddingPriority priority, String url, Object additionalProperties, WebsiteSource websiteSource) {
         List<Document> documents = documentReaderService.readURL(url);
         log.debug("Read {} documents from url: {}", documents.size(), url);
 
@@ -154,20 +202,6 @@ public class IndexService {
         });
 
         embeddingService.save(documents, finalWebsiteSource.getId(), priority);
-    }
-
-    public String normalizeURL(String url) {
-        // make sure url starts with a protocol
-        if (!url.matches("^[a-z]+://.+")) {
-            url = "https://" + url;
-        }
-
-        // make sure there is no trailing slash "/"
-        if (url.endsWith("/")) {
-            url = url.substring(0, url.length() - 1);
-        }
-
-        return url;
     }
 
     // ########
