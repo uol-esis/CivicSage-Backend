@@ -27,6 +27,7 @@ public class SearchResultMapper {
         searchResultDto.documentId(UUID.fromString(document.getId()));
         searchResultDto.setScore(getScore(document));
         searchResultDto.setText(document.getText());
+        searchResultDto.setUploadDate(document.getMetadata().get(UPLOAD_DATE.getValue()));
 
         Map<String, Object> metadata = document.getMetadata();
         Object fileName = metadata.get(FILE_NAME.getValue());

@@ -19,7 +19,8 @@ public enum MetadataKeys {
     TITLE("title", true),
     URL("url", true),
     ADDITIONAL_PROPERTIES("additional_properties", false), // this is marked as internal, but is available in filter expression using "additional_properties."
-    STARTUP_DOCUMENT("startup_document", false);
+    STARTUP_DOCUMENT("startup_document", false),
+    UPLOAD_DATE("upload_date", false);
 
     public static final List<MetadataKeys> EXPOSED_KEYS = Arrays.stream(MetadataKeys.values())
             .filter(MetadataKeys::isExposed)

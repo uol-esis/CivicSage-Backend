@@ -83,8 +83,10 @@ public class IndexService {
         fileSource = sourceService.save(fileSource);
 
         final FileSource finalFileSource = fileSource;
-        documents.forEach(document ->
-                document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId()));
+        documents.forEach(document -> {
+            document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId());
+            document.getMetadata().put(UPLOAD_DATE.getValue(), finalFileSource.getUploadDate());
+        });
 
         embeddingService.save(documents, finalFileSource.getObjectStorageId(), priority);
     }
@@ -146,8 +148,10 @@ public class IndexService {
         websiteSource = sourceService.save(websiteSource);
 
         final WebsiteSource finalWebsiteSource = websiteSource;
-        documents.forEach(document ->
-                document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId()));
+        documents.forEach(document -> {
+            document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId());
+            document.getMetadata().put(UPLOAD_DATE.getValue(), finalWebsiteSource.getUploadDate());
+        });
 
         embeddingService.save(documents, finalWebsiteSource.getId(), priority);
     }
