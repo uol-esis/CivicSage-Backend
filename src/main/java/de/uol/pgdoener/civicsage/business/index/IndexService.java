@@ -158,7 +158,7 @@ public class IndexService {
         } else {
             websiteSources = sourceService.getWebsiteSourcesByIds(ids);
         }
-        log.info("Updating {} website sources", ((Collection<?>) websiteSources).size());
+        log.info("Updating {} website sources", ids.isEmpty() ? "all" : ids.size());
 
         for (WebsiteSource websiteSource : websiteSources) {
             embeddingService.delete(websiteSource.getId());
