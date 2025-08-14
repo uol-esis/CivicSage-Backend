@@ -14,7 +14,8 @@ public class SourceMapper {
     public FileSourceDto toDto(@NonNull FileSource fileSource, boolean embedded) {
         FileSourceDto dto = new FileSourceDto()
                 .fileId(fileSource.getObjectStorageId())
-                .fileName(fileSource.getFileName());
+                .fileName(fileSource.getFileName())
+                .uploadDate(fileSource.getUploadDate());
         dto.setTitle((String) fileSource.getMetadata().get(MetadataKeys.TITLE.getValue()));
         //noinspection unchecked
         ((Map<String, Object>) fileSource.getMetadata().getOrDefault(MetadataKeys.ADDITIONAL_PROPERTIES.getValue(), Map.of()))
@@ -29,7 +30,8 @@ public class SourceMapper {
     public WebsiteSourceDto toDto(@NonNull WebsiteSource websiteSource, boolean embedded) {
         WebsiteSourceDto dto = new WebsiteSourceDto()
                 .websiteId(websiteSource.getId())
-                .url(websiteSource.getUrl());
+                .url(websiteSource.getUrl())
+                .uploadDate(websiteSource.getUploadDate());
         dto.setTitle((String) websiteSource.getMetadata().get(MetadataKeys.TITLE.getValue()));
         //noinspection unchecked
         ((Map<String, Object>) websiteSource.getMetadata().getOrDefault(MetadataKeys.ADDITIONAL_PROPERTIES.getValue(), Map.of()))

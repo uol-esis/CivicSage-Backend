@@ -172,7 +172,7 @@
                         </goals>
                         <configuration>
                             <inputSpec>
-                                https://raw.githubusercontent.com/uol-esis/CivicSage-OpenAPI/v0.4.0/openapi.yaml
+                                https://raw.githubusercontent.com/uol-esis/CivicSage-OpenAPI/e7f31282a8f328d74a4a7e9c03296eeac35c5219/openapi.yaml
                             </inputSpec>
                             <generatorName>spring</generatorName>
                             <apiPackage>de.uol.pgdoener.civicsage.api</apiPackage>
