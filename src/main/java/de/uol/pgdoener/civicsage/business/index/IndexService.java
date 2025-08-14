@@ -162,6 +162,7 @@ public class IndexService {
         }
         log.info("Updating {} website sources", ids.isEmpty() ? "all" : ids.size());
 
+        RuntimeException exception = null;
         for (WebsiteSource websiteSource : websiteSources) {
             embeddingService.delete(websiteSource.getId());
 
@@ -179,7 +180,15 @@ public class IndexService {
                     websiteSource.getModels(),
                     new HashMap<>(websiteSource.getMetadata())
             );
-            doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, ws);
+            try {
+                doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, ws);
+            } catch (RuntimeException e) {
+                log.warn("Error while indexing website {}: {}", url, e.getMessage(), e);
+                exception = e;
+            }
+        }
+        if (exception != null) {
+            throw exception;
         }
     }
 
