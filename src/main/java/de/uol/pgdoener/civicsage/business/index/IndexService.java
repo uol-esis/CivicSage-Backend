@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -128,7 +129,7 @@ public class IndexService {
                 new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
-                .orElse(new WebsiteSource(null, url, new ArrayList<>(), new HashMap<>()));
+                .orElse(new WebsiteSource(null, url, OffsetDateTime.now(), new ArrayList<>(), new HashMap<>()));
         if (websiteSource.getModels().contains(modelID)) {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
