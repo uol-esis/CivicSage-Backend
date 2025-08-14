@@ -170,8 +170,14 @@ public class IndexService {
                 additionalProperties = new HashMap<>();
             }
             websiteSource.getModels().remove(modelID);
-            // TODO update uploadDate when PR is merged
-            doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, websiteSource);
+            WebsiteSource ws = new WebsiteSource(
+                    websiteSource.getId(),
+                    url,
+                    OffsetDateTime.now(),
+                    websiteSource.getModels(),
+                    new HashMap<>(websiteSource.getMetadata())
+            );
+            doWebsiteIndexing(EmbeddingPriority.LOW, url, additionalProperties, ws);
         }
     }
 
