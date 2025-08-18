@@ -35,4 +35,24 @@ public class ChatMapper {
         };
     }
 
+    public ChatMessage toEntity(Chat chat, ChatMessageDto message) {
+        return new ChatMessage(
+                null,
+                chat,
+                toEntity(message.getRole().orElse(ChatMessageDto.RoleEnum.UNKNOWN_DEFAULT_OPEN_API)),
+                message.getContent().orElse(""),
+                message.getFiles(),
+                message.getWebsiteURLs()
+        );
+    }
+
+    public Role toEntity(ChatMessageDto.RoleEnum role) {
+        return switch (role) {
+            case USER -> Role.USER;
+            case ASSISTANT -> Role.ASSISTANT;
+            case UNKNOWN_DEFAULT_OPEN_API ->
+                    throw new IllegalArgumentException("Unknown role in DTO conversion: " + role);
+        };
+    }
+
 }

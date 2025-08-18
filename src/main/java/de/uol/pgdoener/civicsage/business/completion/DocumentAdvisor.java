@@ -47,7 +47,7 @@ public class DocumentAdvisor implements BaseAdvisor {
         @SuppressWarnings("unchecked")
         List<UUID> documentIds = (List<UUID>) context.get(DOCUMENT_IDS_CONTEXT_KEY);
 
-        if (documentIds.isEmpty()) {
+        if (documentIds == null || documentIds.isEmpty()) {
             log.info("No documents provided");
             return chatClientRequest;
         }

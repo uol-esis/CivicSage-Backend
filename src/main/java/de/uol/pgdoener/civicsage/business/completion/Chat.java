@@ -25,6 +25,7 @@ public class Chat {
     private String systemPrompt;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OrderColumn
     private List<ChatMessage> messages;
 
 }

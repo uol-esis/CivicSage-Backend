@@ -38,7 +38,8 @@ public class CompletionsController implements CompletionsApiDelegate {
 
     @Override
     public ResponseEntity<ChatDto> sendMessage(UUID chatId, ChatMessageDto chatMessageDto) {
-        return CompletionsApiDelegate.super.sendMessage(chatId, chatMessageDto);
+        ChatDto chat = chatService.sendMessage(chatId, chatMessageDto);
+        return ResponseEntity.ok(chat);
     }
 
     @Override

@@ -16,6 +16,7 @@ import java.util.UUID;
 public class ChatMessage {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne
