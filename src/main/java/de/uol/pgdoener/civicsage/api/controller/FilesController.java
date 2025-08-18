@@ -43,8 +43,8 @@ public class FilesController implements FilesApiDelegate {
     }
 
     @Override
-    public ResponseEntity<UploadFile200ResponseDto> uploadFile(MultipartFile file) {
-        UUID objectID = fileService.storeFile(file, file.getOriginalFilename());
+    public ResponseEntity<UploadFile200ResponseDto> uploadFile(MultipartFile file, Optional<Boolean> temporary) {
+        UUID objectID = fileService.storeFile(file, file.getOriginalFilename(), temporary.orElse(false));
         UploadFile200ResponseDto response = new UploadFile200ResponseDto();
         response.setId(objectID);
         return ResponseEntity.ok(response);

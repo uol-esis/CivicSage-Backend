@@ -30,15 +30,25 @@ public class FileService {
     private final FileHashingService fileHashingService;
 
     public UUID storeFile(InputStreamSource iss, String fileName) {
-        try {
-            String hash = fileHashingService.hash(iss.getInputStream());
-            sourceService.verifyFileHashNotIndexed(hash);
+        return storeFile(iss, fileName, false);
+    }
+
+    public UUID storeFile(InputStreamSource iss, String fileName, boolean temporary) {
+        if (temporary) {
             UUID objectID = storeInStorage(iss);
-            sourceService.save(new FileSource(objectID, fileName, hash, OffsetDateTime.now(), List.of(), Map.of()));
-            log.info("File {} uploaded successfully with ID {}", fileName, objectID);
+            log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
             return objectID;
-        } catch (IOException e) {
-            throw new ReadFileException("Could not read file.", e);
+        } else {
+            try {
+                String hash = fileHashingService.hash(iss.getInputStream());
+                sourceService.verifyFileHashNotIndexed(hash);
+                UUID objectID = storeInStorage(iss);
+                sourceService.save(new FileSource(objectID, fileName, hash, OffsetDateTime.now(), List.of(), Map.of()));
+                log.info("File {} uploaded successfully with ID {}", fileName, objectID);
+                return objectID;
+            } catch (IOException e) {
+                throw new ReadFileException("Could not read file.", e);
+            }
         }
     }
 
