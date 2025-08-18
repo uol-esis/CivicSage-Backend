@@ -14,6 +14,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeType;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -99,7 +100,10 @@ public class ChatService {
 
     private Media createMedia(UUID fileId) {
         return storageService.load(fileId)
-                .map(is -> Media.builder().data(new InputStreamResource(is)).build())
+                .map(is -> Media.builder()
+                        .data(new InputStreamResource(is))
+                        .mimeType(MimeType.valueOf("application/pdf"))
+                        .build())
                 .orElseThrow(() -> new ReadFileException("Could not find file with ID: " + fileId));
     }
 
@@ -107,6 +111,7 @@ public class ChatService {
         try {
             return Media.builder()
                     .data(new UrlResource(uri))
+                    .mimeType(MimeType.valueOf("application/octet-stream"))
                     .build();
         } catch (MalformedURLException e) {
             throw new ReadUrlException("Failed to read URL: " + uri, e);
