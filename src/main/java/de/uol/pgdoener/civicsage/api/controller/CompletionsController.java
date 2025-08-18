@@ -21,8 +21,14 @@ public class CompletionsController implements CompletionsApiDelegate {
 
     @Override
     public ResponseEntity<ChatDto> getChat(Optional<UUID> chatId) {
-        ChatDto chat = chatService.createChat();
-        return ResponseEntity.status(201).body(chat);
+        if (chatId.isEmpty()) {
+            ChatDto chat = chatService.createChat();
+            return ResponseEntity.status(201).body(chat);
+        } else {
+            return chatService.getChat(chatId.get())
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        }
     }
 
     @Override
