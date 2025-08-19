@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
+import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
@@ -12,6 +13,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -77,12 +79,20 @@ public class ChatService {
                 .map(this::createMessage)
                 .toList();
 
-        String content = chatClient.prompt()
-                .system(chat.getSystemPrompt())
-                .advisors(advisor -> advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, chat.getDocumentIds()))
-                .messages(messages)
-                .call()
-                .content();
+        String content;
+        try {
+            content = chatClient.prompt()
+                    .system(chat.getSystemPrompt())
+                    .advisors(advisor -> advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, chat.getDocumentIds()))
+                    .messages(messages)
+                    .call()
+                    .content();
+        } catch (NonTransientAiException e) {
+            if (e.getMessage().startsWith("HTTP 429")) {
+                throw new ChatRateLimitException();
+            }
+            throw e;
+        }
 
         ChatMessage responseMessage = new ChatMessage(
                 null,

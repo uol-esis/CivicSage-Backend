@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
+import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitException;
 import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
@@ -29,6 +30,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ChatRateLimitException.class)
+    public ResponseEntity<Object> handleChatNotFoundException(ChatRateLimitException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        log.debug("ChatRateLimitException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(ChatNotFoundException.class)
     public ResponseEntity<Object> handleChatNotFoundException(ChatNotFoundException ex) {
