@@ -9,6 +9,7 @@ import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.business.search.exception.FilterExpressionException;
 import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.business.search.exception.SearchRateLimitException;
 import de.uol.pgdoener.civicsage.business.source.exception.HashingException;
 import de.uol.pgdoener.civicsage.business.source.exception.SourceCollisionException;
 import de.uol.pgdoener.civicsage.business.source.exception.SourceNotFoundException;
@@ -43,6 +44,13 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
         log.debug("ChatNotFoundException: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
+
+    @ExceptionHandler(SearchRateLimitException.class)
+    public ResponseEntity<Object> handleSearchRateLimitException(SearchRateLimitException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        log.debug("SearchRateLimitException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse.getBody());
     }
 
     @ExceptionHandler(SplittingException.class)

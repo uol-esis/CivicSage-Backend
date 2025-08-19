@@ -4,9 +4,11 @@ import de.uol.pgdoener.civicsage.business.dto.SearchQueryDto;
 import de.uol.pgdoener.civicsage.business.dto.SearchResultDto;
 import de.uol.pgdoener.civicsage.business.embedding.EmbeddingService;
 import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.business.search.exception.SearchRateLimitException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +42,17 @@ public class SearchService {
         filterString.ifPresent(filterExpressionValidator::validate);
 
         SearchRequest searchRequest = buildSearchRequest(query.getQuery(), filterString, resultsToFetch);
-        List<Document> documents = embeddingService.search(searchRequest);
+        List<Document> documents;
+        try {
+            documents = embeddingService.search(searchRequest);
+        } catch (NonTransientAiException e) {
+            if (e.getMessage().startsWith("HTTP 429")) {
+                log.warn("Rate limit exceeded while searching for documents: {}", e.getMessage());
+                throw new SearchRateLimitException();
+            }
+            log.error("Error while searching for documents: {}", e.getMessage(), e);
+            throw e;
+        }
 
         if (documents == null || documents.isEmpty()) {
             log.info("No documents found for query {}", query);
