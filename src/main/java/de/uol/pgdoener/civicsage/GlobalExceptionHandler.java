@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage;
 
+import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
 import de.uol.pgdoener.civicsage.business.embedding.exception.DocumentNotFoundException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
@@ -28,6 +29,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ChatNotFoundException.class)
+    public ResponseEntity<Object> handleChatNotFoundException(ChatNotFoundException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.NOT_FOUND, ex.getMessage());
+        log.debug("ChatNotFoundException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(SplittingException.class)
     public ResponseEntity<Object> handleSplittingException(SplittingException ex) {

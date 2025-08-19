@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
+import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
@@ -44,9 +45,30 @@ public class ChatService {
                 .map(chatMapper::toDto);
     }
 
+    public void updateChat(UUID chatId, ChatDto chatDto) {
+        final Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(ChatNotFoundException::new);
+
+        List<UUID> newDocumentIds;
+        // We do not allow the new list to be empty, as we cannot differentiate between an empty list and no list.
+        if (chatDto.getEmbeddings().isEmpty()) {
+            newDocumentIds = chat.getDocumentIds();
+        } else {
+            newDocumentIds = chatDto.getEmbeddings();
+        }
+
+        Chat newChat = new Chat(
+                chat.getId(),
+                newDocumentIds,
+                chatDto.getSystemPrompt().orElse(chat.getSystemPrompt()),
+                chat.getMessages()
+        );
+        chatRepository.save(newChat);
+    }
+
     public ChatDto sendMessage(UUID chatId, ChatMessageDto message) {
         Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> new IllegalArgumentException("Chat not found with ID: " + chatId));
+                .orElseThrow(ChatNotFoundException::new);
 
         ChatMessage chatMessage = chatMapper.toEntity(chat, message);
         chat.getMessages().add(chatMessage);
@@ -57,7 +79,7 @@ public class ChatService {
 
         String content = chatClient.prompt()
                 .system(chat.getSystemPrompt())
-                // TODO add documents or something
+                .advisors(advisor -> advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, chat.getDocumentIds()))
                 .messages(messages)
                 .call()
                 .content();

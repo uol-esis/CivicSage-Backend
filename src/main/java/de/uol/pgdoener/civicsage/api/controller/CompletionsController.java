@@ -2,6 +2,7 @@ package de.uol.pgdoener.civicsage.api.controller;
 
 import de.uol.pgdoener.civicsage.api.CompletionsApiDelegate;
 import de.uol.pgdoener.civicsage.business.completion.ChatService;
+import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,14 @@ public class CompletionsController implements CompletionsApiDelegate {
         } else {
             return chatService.getChat(chatId.get())
                     .map(ResponseEntity::ok)
-                    .orElseGet(() -> ResponseEntity.notFound().build());
+                    .orElseThrow(ChatNotFoundException::new);
         }
     }
 
     @Override
     public ResponseEntity<Void> updateChat(UUID chatId, ChatDto chatDto) {
-        return CompletionsApiDelegate.super.updateChat(chatId, chatDto);
+        chatService.updateChat(chatId, chatDto);
+        return ResponseEntity.ok().build();
     }
 
     @Override
