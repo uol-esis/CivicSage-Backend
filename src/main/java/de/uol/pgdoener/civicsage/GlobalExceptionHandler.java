@@ -7,6 +7,7 @@ import de.uol.pgdoener.civicsage.business.index.exception.SplittingException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.business.search.exception.FilterExpressionException;
 import de.uol.pgdoener.civicsage.business.search.exception.NotEnoughResultsAvailableException;
+import de.uol.pgdoener.civicsage.business.search.exception.SearchRateLimitException;
 import de.uol.pgdoener.civicsage.business.source.exception.HashingException;
 import de.uol.pgdoener.civicsage.business.source.exception.SourceCollisionException;
 import de.uol.pgdoener.civicsage.business.source.exception.SourceNotFoundException;
@@ -28,6 +29,13 @@ import java.util.Map;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SearchRateLimitException.class)
+    public ResponseEntity<Object> handleSearchRateLimitException(SearchRateLimitException ex) {
+        ErrorResponse errorResponse = ErrorResponse.create(ex, HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        log.debug("SearchRateLimitException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse.getBody());
+    }
 
     @ExceptionHandler(SplittingException.class)
     public ResponseEntity<Object> handleSplittingException(SplittingException ex) {
