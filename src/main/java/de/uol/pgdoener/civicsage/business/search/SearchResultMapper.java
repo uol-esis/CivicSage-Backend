@@ -28,7 +28,9 @@ public class SearchResultMapper {
         searchResultDto.documentId(UUID.fromString(document.getId()));
         searchResultDto.setScore(getScore(document));
         searchResultDto.setText(document.getText());
-        searchResultDto.uploadDate((OffsetDateTime) document.getMetadata().get(UPLOAD_DATE.getValue()));
+        String uploadDateValue = (String) document.getMetadata().get(UPLOAD_DATE.getValue());
+        OffsetDateTime uploadDate = OffsetDateTime.parse(uploadDateValue);
+        searchResultDto.uploadDate(uploadDate);
 
         Map<String, Object> metadata = document.getMetadata();
         Object fileName = metadata.get(FILE_NAME.getValue());

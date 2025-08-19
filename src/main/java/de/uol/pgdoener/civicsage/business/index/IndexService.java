@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,6 +42,7 @@ public class IndexService {
     private final EmbeddingService embeddingService;
     private final TextSplitter textSplitter;
     private final StorageService storageService;
+    private final TimeFactory timeFactory;
 
     @Value("${spring.ai.openai.embedding.options.model}")
     private String modelID;
@@ -85,7 +85,7 @@ public class IndexService {
         final FileSource finalFileSource = fileSource;
         documents.forEach(document -> {
             document.getMetadata().put(SOURCE_ID.getValue(), finalFileSource.getObjectStorageId());
-            document.getMetadata().put(UPLOAD_DATE.getValue(), finalFileSource.getUploadDate());
+            document.getMetadata().put(UPLOAD_DATE.getValue(), finalFileSource.getUploadDate().toString());
         });
 
         embeddingService.save(documents, finalFileSource.getObjectStorageId(), priority);
@@ -131,7 +131,7 @@ public class IndexService {
                 new HashMap<>() : indexWebsiteRequestDto.getAdditionalProperties();
 
         WebsiteSource websiteSource = sourceService.getWebsiteSourceByUrl(url)
-                .orElse(new WebsiteSource(null, url, OffsetDateTime.now(), new ArrayList<>(), new HashMap<>()));
+                .orElse(new WebsiteSource(null, url, timeFactory.getCurrentTime(), new ArrayList<>(), new HashMap<>()));
         if (websiteSource.getModels().contains(modelID)) {
             throw new SourceCollisionException("Website is already indexed for current model!");
         }
@@ -176,7 +176,7 @@ public class IndexService {
             WebsiteSource ws = new WebsiteSource(
                     websiteSource.getId(),
                     url,
-                    OffsetDateTime.now(),
+                    timeFactory.getCurrentTime(),
                     websiteSource.getModels(),
                     new HashMap<>(websiteSource.getMetadata())
             );
@@ -207,7 +207,7 @@ public class IndexService {
         final WebsiteSource finalWebsiteSource = websiteSource;
         documents.forEach(document -> {
             document.getMetadata().put(SOURCE_ID.getValue(), finalWebsiteSource.getId());
-            document.getMetadata().put(UPLOAD_DATE.getValue(), finalWebsiteSource.getUploadDate());
+            document.getMetadata().put(UPLOAD_DATE.getValue(), finalWebsiteSource.getUploadDate().toString());
         });
 
         embeddingService.save(documents, finalWebsiteSource.getId(), priority);

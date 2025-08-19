@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.business.storage;
 
+import de.uol.pgdoener.civicsage.business.index.TimeFactory;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.business.source.FileHashingService;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,13 +28,14 @@ public class FileService {
     private final StorageService storageService;
     private final SourceService sourceService;
     private final FileHashingService fileHashingService;
+    private final TimeFactory timeFactory;
 
     public UUID storeFile(InputStreamSource iss, String fileName) {
         try {
             String hash = fileHashingService.hash(iss.getInputStream());
             sourceService.verifyFileHashNotIndexed(hash);
             UUID objectID = storeInStorage(iss);
-            sourceService.save(new FileSource(objectID, fileName, hash, OffsetDateTime.now(), List.of(), Map.of()));
+            sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of()));
             log.info("File {} uploaded successfully with ID {}", fileName, objectID);
             return objectID;
         } catch (IOException e) {
