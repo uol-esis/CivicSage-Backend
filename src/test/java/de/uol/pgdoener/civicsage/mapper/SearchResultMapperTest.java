@@ -6,6 +6,7 @@ import de.uol.pgdoener.civicsage.business.search.SearchResultMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +24,8 @@ class SearchResultMapperTest {
                 .text("content")
                 .metadata(Map.of(
                         FILE_NAME.getValue(), "file.pdf",
-                        FILE_ID.getValue(), UUID.randomUUID().toString()
+                        FILE_ID.getValue(), UUID.randomUUID().toString(),
+                        UPLOAD_DATE.getValue(), OffsetDateTime.now().toString()
                 ))
                 .score(0.42)
                 .build();
@@ -43,7 +45,8 @@ class SearchResultMapperTest {
         Document document = Document.builder()
                 .text("content")
                 .metadata(Map.of(
-                        URL.getValue(), "example.com"
+                        URL.getValue(), "example.com",
+                        UPLOAD_DATE.getValue(), OffsetDateTime.now().toString()
                 ))
                 .score(0.1)
                 .build();
@@ -65,14 +68,16 @@ class SearchResultMapperTest {
                         .text("content1")
                         .metadata(Map.of(
                                 FILE_NAME.getValue(), "file.pdf",
-                                FILE_ID.getValue(), UUID.randomUUID().toString()
+                                FILE_ID.getValue(), UUID.randomUUID().toString(),
+                                UPLOAD_DATE.getValue(), OffsetDateTime.now().toString()
                         ))
                         .score(0.42)
                         .build(),
                 Document.builder()
                         .text("content2")
                         .metadata(Map.of(
-                                URL.getValue(), "example.com"
+                                URL.getValue(), "example.com",
+                                UPLOAD_DATE.getValue(), OffsetDateTime.now().toString()
                         ))
                         .score(0.1)
                         .build()
