@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +28,9 @@ public class SearchResultMapper {
         searchResultDto.documentId(UUID.fromString(document.getId()));
         searchResultDto.setScore(getScore(document));
         searchResultDto.setText(document.getText());
+        String uploadDateValue = (String) document.getMetadata().get(UPLOAD_DATE.getValue());
+        OffsetDateTime uploadDate = OffsetDateTime.parse(uploadDateValue);
+        searchResultDto.uploadDate(uploadDate);
 
         Map<String, Object> metadata = document.getMetadata();
         Object fileName = metadata.get(FILE_NAME.getValue());

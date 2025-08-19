@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.TimeZoneStorage;
+import org.hibernate.annotations.TimeZoneStorageType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
@@ -29,6 +31,7 @@ public class FileSource {
     private String hash;
 
     @Column(nullable = false)
+    @TimeZoneStorage(TimeZoneStorageType.COLUMN)
     private OffsetDateTime uploadDate;
 
     @ElementCollection(fetch = FetchType.EAGER)
