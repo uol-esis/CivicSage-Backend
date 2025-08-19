@@ -22,10 +22,13 @@ public class CompletionsController implements CompletionsApiDelegate {
 
     @Override
     public ResponseEntity<ChatDto> getChat(Optional<UUID> chatId) {
+        log.debug("Received request to get chat with ID: {}", chatId);
         if (chatId.isEmpty()) {
             ChatDto chat = chatService.createChat();
+            log.debug("No chat ID provided, created new chat with ID: {}", chat.getChatId());
             return ResponseEntity.status(201).body(chat);
         } else {
+            log.debug("Retrieving chat with ID: {}", chatId.get());
             return chatService.getChat(chatId.get())
                     .map(ResponseEntity::ok)
                     .orElseThrow(ChatNotFoundException::new);
@@ -34,18 +37,25 @@ public class CompletionsController implements CompletionsApiDelegate {
 
     @Override
     public ResponseEntity<Void> updateChat(UUID chatId, ChatDto chatDto) {
+        log.debug("Received request to update chat with ID: {}", chatId);
         chatService.updateChat(chatId, chatDto);
+        log.debug("Chat with ID: {} updated successfully", chatId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<ChatDto> sendMessage(UUID chatId, ChatMessageDto chatMessageDto) {
+        log.debug("Received request to send message in chat with ID: {}", chatId);
         ChatDto chat = chatService.sendMessage(chatId, chatMessageDto);
+        log.debug("Message sent in chat with ID: {}", chatId);
         return ResponseEntity.ok(chat);
     }
 
     @Override
     public ResponseEntity<Void> deleteChat(UUID chatId) {
+        log.debug("Received request to delete chat with ID: {}", chatId);
+        // TODO
+        log.debug("Deleted chat with ID: {}", chatId);
         return CompletionsApiDelegate.super.deleteChat(chatId);
     }
 }

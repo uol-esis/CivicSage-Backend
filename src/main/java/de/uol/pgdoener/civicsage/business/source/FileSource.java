@@ -41,4 +41,6 @@ public class FileSource {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> metadata = new HashMap<>();
 
+    private boolean temporary;
+
 }

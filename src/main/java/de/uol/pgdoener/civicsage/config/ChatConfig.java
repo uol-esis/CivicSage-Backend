@@ -1,7 +1,9 @@
 package de.uol.pgdoener.civicsage.config;
 
 import de.uol.pgdoener.civicsage.business.completion.DocumentAdvisor;
+import de.uol.pgdoener.civicsage.business.completion.MediaConversionAdvisor;
 import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
+import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -15,13 +17,15 @@ public class ChatConfig {
 
     private final ChatModel chatModel;
     private final VectorStoreExtension vectorStoreExtension;
+    private final DocumentReaderService documentReaderService;
 
     @Bean
     public ChatClient documentChatClient() {
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
                         SimpleLoggerAdvisor.builder().build(),
-                        DocumentAdvisor.builder().vectorStoreExtension(vectorStoreExtension).build()
+                        DocumentAdvisor.builder().vectorStoreExtension(vectorStoreExtension).build(),
+                        MediaConversionAdvisor.builder().documentReaderService(documentReaderService).build()
                 )
                 .build();
     }

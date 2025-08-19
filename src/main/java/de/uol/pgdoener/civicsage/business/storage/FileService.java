@@ -37,6 +37,7 @@ public class FileService {
     public UUID storeFile(InputStreamSource iss, String fileName, boolean temporary) {
         if (temporary) {
             UUID objectID = storeInStorage(iss);
+            sourceService.save(new FileSource(objectID, fileName, "", timeFactory.getCurrentTime(), List.of(), Map.of(), true));
             log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
             return objectID;
         } else {
@@ -44,7 +45,7 @@ public class FileService {
                 String hash = fileHashingService.hash(iss.getInputStream());
                 sourceService.verifyFileHashNotIndexed(hash);
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of()));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false));
                 log.info("File {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             } catch (IOException e) {
