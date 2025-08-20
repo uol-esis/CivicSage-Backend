@@ -27,6 +27,13 @@ public class SourceService {
     }
 
     public FileSource getFileSourceById(UUID id) {
+        Optional<FileSource> optionalFileSource = fileSourceRepository.findByObjectStorageIdAndTemporaryIsFalse(id);
+        if (optionalFileSource.isEmpty())
+            throw new SourceNotFoundException("Could not find source with id +" + id);
+        return optionalFileSource.get();
+    }
+
+    public FileSource getFileSourceByIdWithTemporary(UUID id) {
         Optional<FileSource> optionalFileSource = fileSourceRepository.findById(id);
         if (optionalFileSource.isEmpty())
             throw new SourceNotFoundException("Could not find source with id +" + id);
@@ -34,7 +41,7 @@ public class SourceService {
     }
 
     public Optional<FileSource> getFileSourceByHash(String hash) {
-        return fileSourceRepository.getFileSourceByHash(hash);
+        return fileSourceRepository.getFileSourceByHashAndTemporaryIsFalse(hash);
     }
 
     public Optional<WebsiteSource> getWebsiteSourceByUrl(String url) {
@@ -42,13 +49,13 @@ public class SourceService {
     }
 
     public void verifyFileHashNotIndexed(String hash) {
-        if (fileSourceRepository.existsByHash(hash)) {
+        if (fileSourceRepository.existsByHashAndTemporaryIsFalse(hash)) {
             throw new SourceCollisionException("File is already indexed");
         }
     }
 
     public List<FileSource> getFileSourcesNotIndexedWith(String modelId) {
-        return fileSourceRepository.getFileSourceByModelsNotContaining(modelId);
+        return fileSourceRepository.getFileSourceByModelsNotContainingAndTemporaryIsFalse(modelId);
     }
 
     public List<WebsiteSource> getWebsiteSourcesNotIndexedWith(String modelId) {
@@ -57,7 +64,7 @@ public class SourceService {
 
     public Iterable<FileSource> getAllFileSources(String filterExpression) {
         // TODO: Implement filtering logic based on the filterExpression
-        return fileSourceRepository.findAll();
+        return fileSourceRepository.findAllByTemporaryIsFalse();
     }
 
     public Iterable<WebsiteSource> getAllWebsiteSources(String filterExpression) {

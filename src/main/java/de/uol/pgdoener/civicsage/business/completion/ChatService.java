@@ -151,7 +151,7 @@ public class ChatService {
     }
 
     private Media createMedia(UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
-        String fileName = sourceService.getFileSourceById(fileId).getFileName();
+        String fileName = sourceService.getFileSourceByIdWithTemporary(fileId).getFileName();
         Media media;
         try {
             media = storageService.load(fileId)

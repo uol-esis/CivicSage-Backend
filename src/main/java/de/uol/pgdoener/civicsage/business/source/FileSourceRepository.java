@@ -11,10 +11,14 @@ import java.util.UUID;
 public interface FileSourceRepository
         extends CrudRepository<FileSource, UUID> {
 
-    boolean existsByHash(String hash);
+    boolean existsByHashAndTemporaryIsFalse(String hash);
 
-    Optional<FileSource> getFileSourceByHash(String hash);
+    Optional<FileSource> getFileSourceByHashAndTemporaryIsFalse(String hash);
 
-    List<FileSource> getFileSourceByModelsNotContaining(String modelId);
+    List<FileSource> getFileSourceByModelsNotContainingAndTemporaryIsFalse(String modelId);
+
+    List<FileSource> findAllByTemporaryIsFalse();
+
+    Optional<FileSource> findByObjectStorageIdAndTemporaryIsFalse(UUID id);
 
 }
