@@ -1,7 +1,6 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
-import de.uol.pgdoener.civicsage.business.source.FileSource;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.document.Document;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MediaConversionAdvisor implements BaseAdvisor {
 
+    /**
+     * Key for the context map to store media metadata.
+     * The value must be an instance of a {@link Map} from {@link String} to {@link MediaMetadata}.
+     */
+    public static final String MEDIA_METADATA_CONTEXT_KEY = "media-metadata-context";
+
     private final DocumentReaderService documentReaderService;
 
     @NotNull
@@ -31,6 +37,8 @@ public class MediaConversionAdvisor implements BaseAdvisor {
     public ChatClientRequest before(@NotNull ChatClientRequest chatClientRequest, @NotNull AdvisorChain advisorChain) {
         Prompt prompt = chatClientRequest.prompt();
         Map<String, Object> context = chatClientRequest.context();
+        @SuppressWarnings("unchecked")
+        Map<String, MediaMetadata> mediaMetadata = (Map<String, MediaMetadata>) context.get(MEDIA_METADATA_CONTEXT_KEY);
 
         log.debug("Processing prompt with media conversion advisor");
         List<Message> newMessages = prompt.getInstructions().stream()
@@ -43,7 +51,10 @@ public class MediaConversionAdvisor implements BaseAdvisor {
                             return m;
                         }
                         String mediaText = media.stream()
-                                .map(this::convertMediaToText)
+                                .map(med -> {
+                                    MediaMetadata metadata = mediaMetadata.get(med.getId());
+                                    return convertMediaToText(med, metadata);
+                                })
                                 .reduce("", (acc, converted) -> acc + "\n\n" + converted).trim();
                         log.debug("Converted {} media to text", media.size());
                         return userMessage.mutate()
@@ -63,16 +74,15 @@ public class MediaConversionAdvisor implements BaseAdvisor {
         return new ChatClientRequest(prompt, context);
     }
 
-    private String convertMediaToText(Media media) {
+    private String convertMediaToText(Media media, MediaMetadata metadata) {
         List<Document> documents;
-        switch (media) {
-            case FileMedia fm -> {
-                FileSource fileSource = fm.getFileSource();
-                documents = documentReaderService.read(fm.getResource(), fileSource.getFileName());
+        switch (metadata) {
+            case FileMetadata(String fileName) -> {
+                documents = documentReaderService.read(new ByteArrayResource(media.getDataAsByteArray()), fileName);
                 log.debug("Read {} documents from FileMedia", documents.size());
             }
-            case WebsiteMedia wm -> {
-                documents = documentReaderService.readURL(wm.getUrl());
+            case WebsiteMetadata(String url) -> {
+                documents = documentReaderService.readURL(url, new ByteArrayResource(media.getDataAsByteArray()));
                 log.debug("Read {} documents from WebsiteMedia", documents.size());
             }
             default -> {
@@ -94,6 +104,22 @@ public class MediaConversionAdvisor implements BaseAdvisor {
     @Override
     public int getOrder() {
         return 0;
+    }
+
+    public sealed interface MediaMetadata permits FileMetadata, WebsiteMetadata {
+        static MediaMetadata forFile(String fileName) {
+            return new FileMetadata(fileName);
+        }
+
+        static MediaMetadata forWebsite(String url) {
+            return new WebsiteMetadata(url);
+        }
+    }
+
+    private record FileMetadata(String fileName) implements MediaMetadata {
+    }
+
+    private record WebsiteMetadata(String url) implements MediaMetadata {
     }
 
 }

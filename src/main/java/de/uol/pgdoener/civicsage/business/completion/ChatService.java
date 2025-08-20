@@ -5,6 +5,7 @@ import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitExce
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
+import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
 import de.uol.pgdoener.civicsage.business.storage.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,13 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeType;
 
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -81,27 +82,13 @@ public class ChatService {
         chat.getMessages().add(chatMessage);
         log.debug("Adding message to chat {}", chatId);
 
+        Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap = new HashMap<>();
         List<Message> messages = chat.getMessages().stream()
-                .map(this::createMessage)
+                .map(cm -> createMessage(cm, mediaMetadataMap))
                 .toList();
         log.debug("Sending message to chat {} with {} messages", chatId, messages.size());
 
-        String content;
-        try {
-            content = chatClient.prompt()
-                    .system(chat.getSystemPrompt())
-                    .advisors(advisor -> advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, chat.getDocumentIds()))
-                    .messages(messages)
-                    .call()
-                    .content();
-        } catch (NonTransientAiException e) {
-            if (e.getMessage().startsWith("HTTP 429")) {
-                log.error("Rate limit exceeded for chat completion", e);
-                throw new ChatRateLimitException();
-            }
-            log.error("Unknown error during chat completion", e);
-            throw e;
-        }
+        String content = callModel(chat, mediaMetadataMap, messages);
 
         ChatMessage responseMessage = new ChatMessage(
                 null,
@@ -118,12 +105,35 @@ public class ChatService {
         return chatMapper.toDto(updatedChat);
     }
 
-    private Message createMessage(ChatMessage chatMessage) {
-        List<Media> mediaList = new java.util.ArrayList<>(chatMessage.getFileIds().stream()
-                .map(this::createMedia)
+    private String callModel(Chat chat, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap, List<Message> messages) {
+        String content;
+        try {
+            content = chatClient.prompt()
+                    .system(chat.getSystemPrompt())
+                    .advisors(advisor -> {
+                        advisor.param(DocumentAdvisor.DOCUMENT_IDS_CONTEXT_KEY, chat.getDocumentIds());
+                        advisor.param(MediaConversionAdvisor.MEDIA_METADATA_CONTEXT_KEY, mediaMetadataMap);
+                    })
+                    .messages(messages)
+                    .call()
+                    .content();
+        } catch (NonTransientAiException e) {
+            if (e.getMessage().startsWith("HTTP 429")) {
+                log.error("Rate limit exceeded for chat completion", e);
+                throw new ChatRateLimitException();
+            }
+            log.error("Unknown error during chat completion", e);
+            throw e;
+        }
+        return content;
+    }
+
+    private Message createMessage(ChatMessage chatMessage, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+        List<Media> mediaList = new ArrayList<>(chatMessage.getFileIds().stream()
+                .map(fileId -> createMedia(fileId, mediaMetadataMap))
                 .toList());
         mediaList.addAll(chatMessage.getUrls().stream()
-                .map(this::createMedia)
+                .map(uri -> createMedia(uri, mediaMetadataMap))
                 .toList());
         return switch (chatMessage.getRole()) {
             case USER -> UserMessage.builder()
@@ -140,14 +150,52 @@ public class ChatService {
         };
     }
 
-    private Media createMedia(UUID fileId) {
-        return storageService.load(fileId)
-                .map(is -> new FileMedia(new InputStreamResource(is), sourceService.getFileSourceById(fileId)))
-                .orElseThrow(() -> new ReadFileException("Could not find file with ID: " + fileId));
+    private Media createMedia(UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+        String fileName = sourceService.getFileSourceById(fileId).getFileName();
+        Media media;
+        try {
+            media = storageService.load(fileId)
+                    .map(is -> Media.builder()
+                            .data(new InputStreamResource(is))
+                            .mimeType(getMimeTypeForFileName(fileName))
+                            .build())
+                    .orElseThrow(() -> new ReadFileException("Could not find file with ID: " + fileId));
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to create media for file ID {}: {}", fileId, e.getMessage());
+            throw new ReadFileException("Failed to read file with ID: " + fileId, e);
+        }
+        mediaMetadataMap.put(media.getName(), MediaConversionAdvisor.MediaMetadata.forFile(fileName));
+        return media;
     }
 
-    private Media createMedia(URI uri) {
-        return new WebsiteMedia(uri.toString());
+    private MimeType getMimeTypeForFileName(String fileName) {
+        String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+        return switch (extension) {
+            case "pdf" -> Media.Format.DOC_PDF;
+            case "txt" -> Media.Format.DOC_TXT;
+            case "doc", "docx" -> Media.Format.DOC_DOCX;
+            // TODO add more formats
+            default -> {
+                log.warn("Unknown file extension '{}', defaulting to TXT", extension);
+                yield Media.Format.DOC_TXT;
+            }
+        };
+    }
+
+    private Media createMedia(URI uri, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+        try {
+            Media media = Media.builder()
+                    .data(new UrlResource(uri))
+                    .mimeType(Media.Format.DOC_HTML)
+                    .build();
+            mediaMetadataMap.put(media.getName(), MediaConversionAdvisor.MediaMetadata.forWebsite(uri.toString()));
+            return media;
+        } catch (MalformedURLException e) {
+            throw new ReadUrlException("Failed to read URL: " + uri, e);
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to create media for URL {}: {}", uri, e.getMessage());
+            throw new ReadUrlException("Failed to read URL: " + uri, e);
+        }
     }
 
 }
