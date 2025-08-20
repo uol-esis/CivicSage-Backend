@@ -61,8 +61,8 @@ public class DocumentReaderFactory {
         };
     }
 
-    public DocumentReader createForURL(@NonNull String url) {
-        WebsiteDocumentReader reader = new WebsiteDocumentReader(url);
+    public DocumentReader createForURL(@NonNull String url, @NonNull Resource resource) {
+        WebsiteDocumentReader reader = new WebsiteDocumentReader(resource);
         reader.getAdditionalMetadata().put(URL.getValue(), url);
         return reader;
     }

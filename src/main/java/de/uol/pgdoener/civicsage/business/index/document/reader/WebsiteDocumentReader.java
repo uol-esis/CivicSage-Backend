@@ -6,6 +6,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.jsoup.JsoupDocumentReader;
 import org.springframework.ai.reader.jsoup.config.JsoupDocumentReaderConfig;
+import org.springframework.core.io.Resource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +17,7 @@ public class WebsiteDocumentReader implements DocumentReader {
 
     private static final String MAIN_SELECTOR = "main";
 
-    private final String url;
+    private final Resource resource;
     @Getter
     private final Map<String, Object> additionalMetadata = new HashMap<>();
 
@@ -26,7 +27,7 @@ public class WebsiteDocumentReader implements DocumentReader {
                 .additionalMetadata(additionalMetadata)
                 .selector(MAIN_SELECTOR)
                 .build();
-        List<Document> documents = new JsoupDocumentReader(url, config).read();
+        List<Document> documents = new JsoupDocumentReader(resource, config).read();
 
         if (areValid(documents)) {
             return documents;
@@ -36,7 +37,7 @@ public class WebsiteDocumentReader implements DocumentReader {
         config = JsoupDocumentReaderConfig.builder()
                 .additionalMetadata(additionalMetadata)
                 .build();
-        return new JsoupDocumentReader(url, config).read();
+        return new JsoupDocumentReader(resource, config).read();
     }
 
     private boolean areValid(List<Document> documents) {

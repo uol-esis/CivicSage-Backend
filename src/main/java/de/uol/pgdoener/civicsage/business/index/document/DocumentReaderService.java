@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
@@ -30,14 +31,25 @@ public class DocumentReaderService {
         return documentReader.read();
     }
 
-    public List<Document> readURL(String url) {
+    public List<Document> readURL(@NonNull String url) {
         // can only read urls using HTTP(S)
         //noinspection HttpUrlsUsage
         if (!(url.startsWith("http://") || url.startsWith("https://"))) {
             throw new ReadUrlException("Invalid protocol used in URL: " + url);
         }
 
-        DocumentReader documentReader = documentReaderFactory.createForURL(url);
+        Resource resource;
+        try {
+            resource = new UrlResource(url);
+        } catch (Exception e) {
+            throw new ReadUrlException("Invalid URL: " + url, e);
+        }
+
+        return readURL(url, resource);
+    }
+
+    public List<Document> readURL(@NonNull String url, @NonNull Resource resource) {
+        DocumentReader documentReader = documentReaderFactory.createForURL(url, resource);
         List<Document> documents;
         try {
             documents = documentReader.read();
