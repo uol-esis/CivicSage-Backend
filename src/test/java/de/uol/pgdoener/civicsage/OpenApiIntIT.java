@@ -15,7 +15,7 @@ import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This test checks if springdoc-openapi is correctly configured and the OpenAPI documentation is available.
@@ -53,7 +53,7 @@ class OpenApiIntIT {
 
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
 }
