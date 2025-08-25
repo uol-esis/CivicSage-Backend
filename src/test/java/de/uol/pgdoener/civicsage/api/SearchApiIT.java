@@ -2,16 +2,19 @@ package de.uol.pgdoener.civicsage.api;
 
 import de.uol.pgdoener.civicsage.api.controller.IndexController;
 import de.uol.pgdoener.civicsage.business.dto.IndexWebsiteRequestDto;
+import de.uol.pgdoener.civicsage.test.support.DummyEmbeddingModel;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MariaDBContainer;
@@ -39,11 +42,17 @@ class SearchApiIT {
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");
+    @MockitoBean
+    MinioClient minioClient;
+    @TestBean
+    EmbeddingModel embeddingModel;
+
+    static EmbeddingModel embeddingModel() {
+        return new DummyEmbeddingModel();
+    }
 
     @Autowired
     MockMvc mockMvc;
-    @MockitoBean
-    MinioClient minioClient;
 
     @BeforeAll
     static void beforeAll(

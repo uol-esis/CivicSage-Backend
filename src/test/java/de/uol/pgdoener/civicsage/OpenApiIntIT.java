@@ -1,15 +1,18 @@
 package de.uol.pgdoener.civicsage;
 
+import de.uol.pgdoener.civicsage.test.support.DummyEmbeddingModel;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -30,12 +33,17 @@ class OpenApiIntIT {
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");
+    @MockitoBean
+    MinioClient minioClient;
+    @TestBean
+    EmbeddingModel embeddingModel;
+
+    static EmbeddingModel embeddingModel() {
+        return new DummyEmbeddingModel();
+    }
 
     @Autowired
     TestRestTemplate restTemplate;
-
-    @MockitoBean
-    MinioClient minioClient;
 
     @BeforeAll
     static void beforeAll() {
