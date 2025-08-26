@@ -13,6 +13,7 @@ public class SourceMapper {
 
     public FileSourceDto toDto(@NonNull FileSource fileSource, boolean embedded) {
         FileSourceDto dto = new FileSourceDto()
+                .embedded(embedded)
                 .fileId(fileSource.getObjectStorageId())
                 .fileName(fileSource.getFileName())
                 .uploadDate(fileSource.getUploadDate());
@@ -23,12 +24,12 @@ public class SourceMapper {
                     if (!MetadataKeys.TITLE.getValue().equals(key))
                         dto.putAdditionalProperty(key, value);
                 });
-        dto.putAdditionalProperty("embedded", embedded);
         return dto;
     }
 
     public WebsiteSourceDto toDto(@NonNull WebsiteSource websiteSource, boolean embedded) {
         WebsiteSourceDto dto = new WebsiteSourceDto()
+                .embedded(embedded)
                 .websiteId(websiteSource.getId())
                 .url(websiteSource.getUrl())
                 .uploadDate(websiteSource.getUploadDate());
@@ -39,7 +40,6 @@ public class SourceMapper {
                     if (!MetadataKeys.TITLE.getValue().equals(key))
                         dto.putAdditionalProperty(key, value);
                 });
-        dto.putAdditionalProperty("embedded", embedded);
         return dto;
     }
 
