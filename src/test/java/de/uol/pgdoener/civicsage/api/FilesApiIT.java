@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.api;
 import com.jayway.jsonpath.JsonPath;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.FileSourceRepository;
+import de.uol.pgdoener.civicsage.test.support.MariaDBContainerFactory;
 import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
@@ -41,10 +42,7 @@ class FilesApiIT {
 
     @Container
     @ServiceConnection
-    static MariaDBContainer<?> mariadb = new MariaDBContainer<>("mariadb:11.8.2-ubi9")
-            .withDatabaseName("test")
-            .withUsername("test")
-            .withPassword("test");
+    static MariaDBContainer<?> mariadb = MariaDBContainerFactory.create();
     @MockitoBean
     MinioClient minioClient;
 

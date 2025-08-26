@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage;
 
 import de.uol.pgdoener.civicsage.test.support.DummyEmbeddingModel;
+import de.uol.pgdoener.civicsage.test.support.MariaDBContainerFactory;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -29,10 +30,7 @@ class OpenApiIntIT {
 
     @Container
     @ServiceConnection
-    static MariaDBContainer<?> mariadb = new MariaDBContainer<>("mariadb:11.8.2-ubi9")
-            .withDatabaseName("test")
-            .withUsername("test")
-            .withPassword("test");
+    static MariaDBContainer<?> mariadb = MariaDBContainerFactory.create();
     @MockitoBean
     MinioClient minioClient;
     @TestBean
