@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.api;
 
 import com.jayway.jsonpath.JsonPath;
+import de.uol.pgdoener.civicsage.autoconfigure.AIProperties;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.FileSourceRepository;
 import de.uol.pgdoener.civicsage.test.support.MariaDBContainerFactory;
@@ -48,6 +49,8 @@ class FilesApiIT {
 
     @Autowired
     MockMvc mockMvc;
+    @Autowired
+    AIProperties aiProperties;
     @Autowired
     FileSourceRepository fileSourceRepository;
 
