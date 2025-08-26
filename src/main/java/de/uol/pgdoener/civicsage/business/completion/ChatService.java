@@ -156,6 +156,7 @@ public class ChatService {
         try {
             media = storageService.load(fileId)
                     .map(is -> Media.builder()
+                            .id(UUID.randomUUID().toString())
                             .data(new InputStreamResource(is))
                             .mimeType(getMimeTypeForFileName(fileName))
                             .build())
@@ -164,7 +165,7 @@ public class ChatService {
             log.error("Failed to create media for file ID {}: {}", fileId, e.getMessage());
             throw new ReadFileException("Failed to read file with ID: " + fileId, e);
         }
-        mediaMetadataMap.put(media.getName(), MediaConversionAdvisor.MediaMetadata.forFile(fileName));
+        mediaMetadataMap.put(media.getId(), MediaConversionAdvisor.MediaMetadata.forFile(fileName));
         return media;
     }
 
@@ -185,10 +186,11 @@ public class ChatService {
     private Media createMedia(URI uri, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
         try {
             Media media = Media.builder()
+                    .id(UUID.randomUUID().toString())
                     .data(new CivicSageUrlResource(uri))
                     .mimeType(Media.Format.DOC_HTML)
                     .build();
-            mediaMetadataMap.put(media.getName(), MediaConversionAdvisor.MediaMetadata.forWebsite(uri.toString()));
+            mediaMetadataMap.put(media.getId(), MediaConversionAdvisor.MediaMetadata.forWebsite(uri.toString()));
             return media;
         } catch (MalformedURLException e) {
             throw new ReadUrlException("Failed to read URL: " + uri, e);
@@ -196,6 +198,14 @@ public class ChatService {
             log.error("Failed to create media for URL {}: {}", uri, e.getMessage());
             throw new ReadUrlException("Failed to read URL: " + uri, e);
         }
+    }
+
+    public void deleteChat(UUID chatId) {
+        if (!chatRepository.existsById(chatId)) {
+            throw new ChatNotFoundException();
+        }
+        chatRepository.deleteById(chatId);
+        // FIXME delete associated files if not use by other chats and the file is temporary
     }
 
 }

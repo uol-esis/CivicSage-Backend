@@ -54,8 +54,8 @@ public class CompletionsController implements CompletionsApiDelegate {
     @Override
     public ResponseEntity<Void> deleteChat(UUID chatId) {
         log.debug("Received request to delete chat with ID: {}", chatId);
-        // TODO
+        chatService.deleteChat(chatId);
         log.debug("Deleted chat with ID: {}", chatId);
-        return CompletionsApiDelegate.super.deleteChat(chatId);
+        return ResponseEntity.noContent().build();
     }
 }
