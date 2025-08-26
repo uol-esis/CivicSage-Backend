@@ -1,5 +1,7 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
+import de.uol.pgdoener.civicsage.business.completion.advisors.DocumentAdvisor;
+import de.uol.pgdoener.civicsage.business.completion.advisors.MediaConversionAdvisor;
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;

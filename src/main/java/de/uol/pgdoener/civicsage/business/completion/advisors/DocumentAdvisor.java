@@ -1,4 +1,4 @@
-package de.uol.pgdoener.civicsage.business.completion;
+package de.uol.pgdoener.civicsage.business.completion.advisors;
 
 import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
 import lombok.Builder;

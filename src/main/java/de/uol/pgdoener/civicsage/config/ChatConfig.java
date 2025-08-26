@@ -1,7 +1,7 @@
 package de.uol.pgdoener.civicsage.config;
 
-import de.uol.pgdoener.civicsage.business.completion.DocumentAdvisor;
-import de.uol.pgdoener.civicsage.business.completion.MediaConversionAdvisor;
+import de.uol.pgdoener.civicsage.business.completion.advisors.DocumentAdvisor;
+import de.uol.pgdoener.civicsage.business.completion.advisors.MediaConversionAdvisor;
 import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
 import de.uol.pgdoener.civicsage.business.index.document.DocumentReaderService;
 import lombok.RequiredArgsConstructor;

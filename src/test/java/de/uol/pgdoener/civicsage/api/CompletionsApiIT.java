@@ -18,6 +18,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,6 +53,7 @@ class CompletionsApiIT {
 
     static final String API_BASE_PATH = "/api/v1/completions/chat";
     static final String API_FILE_UPLOAD_PATH = "/api/v1/files";
+    static final String API_INDEX_URL_PATH = "/api/v1/index/url";
 
     @Container
     @ServiceConnection
@@ -71,6 +73,8 @@ class CompletionsApiIT {
     MockMvc mockMvc;
     @Autowired
     ChatRepository chatRepository;
+    @Autowired
+    VectorStore vectorStore;
 
     @BeforeAll
     static void beforeAll() {
@@ -555,6 +559,108 @@ class CompletionsApiIT {
         assertTrue(chat.get().getMessages().get(0).getUrls().contains(new URI("https://uol.de")));
         assertEquals(Role.ASSISTANT, chat.get().getMessages().get(1).getRole());
         assertEquals("Chat Model Response", chat.get().getMessages().get(1).getContent());
+    }
+
+    @Test
+    void testChatApiSendMessageWithExistingEmbeddings() throws Exception {
+        when(chatModel.call(any(Prompt.class))).thenAnswer(invocation -> {
+            Prompt prompt = invocation.getArgument(0);
+            String lastMessage = prompt.getInstructions().getLast().getText();
+            if (!lastMessage.equals("Hello, how are you?")) {
+                fail("Prompt does not contain the expected user message. Actual prompt: \"" + lastMessage + "\" Expected to equal: Hello, how are you?.");
+            }
+            String systemPrompt = prompt.getSystemMessage().getText();
+            if (!systemPrompt.contains("Example Domain")) {
+                fail("System prompt does not contain the expected text from the indexed document. Actual system prompt: \"" + systemPrompt + "\" If this fails, make sure that example.com still hs the expected content.");
+            }
+            return new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null);
+        });
+        mockMvc.perform(post(API_INDEX_URL_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com"
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+        // Wait a bit for the indexing to complete
+        Thread.sleep(500);
+        // Get the document ID of the indexed document
+        List<UUID> documentIds = vectorStore.similaritySearch("test").stream()
+                .map(d -> UUID.fromString(d.getId()))
+                .toList();
+
+        MvcResult result = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(result.getResponse().getContentAsString(), "$.chatId");
+
+        // Manually add some document IDs to the chat
+        Chat chatBefore = chatRepository.findById(UUID.fromString(chatId)).orElseThrow();
+        chatBefore = new Chat(
+                chatBefore.getId(),
+                documentIds,
+                chatBefore.getSystemPrompt(),
+                chatBefore.getMessages()
+        );
+        chatRepository.save(chatBefore);
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "user",
+                                  "content": "Hello, how are you?"
+                                }
+                                """))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+        // FIXME 404 is not a good response here
+    void testChatApiSendMessageWithNonExistingEmbeddings() throws Exception {
+        when(chatModel.call(any(Prompt.class))).thenAnswer(invocation -> {
+            Prompt prompt = invocation.getArgument(0);
+            String lastMessage = prompt.getInstructions().getLast().getText();
+            if (!lastMessage.equals("Hello, how are you?")) {
+                fail("Prompt does not contain the expected user message. Actual prompt: \"" + lastMessage + "\" Expected to equal: Hello, how are you?.");
+            }
+            return new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null);
+        });
+
+        MvcResult result = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(result.getResponse().getContentAsString(), "$.chatId");
+
+        // Manually add some document IDs to the chat
+        Chat chatBefore = chatRepository.findById(UUID.fromString(chatId)).orElseThrow();
+        chatBefore = new Chat(
+                chatBefore.getId(),
+                List.of(UUID.randomUUID(), UUID.randomUUID()),
+                chatBefore.getSystemPrompt(),
+                chatBefore.getMessages()
+        );
+        chatRepository.save(chatBefore);
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "user",
+                                  "content": "Hello, how are you?"
+                                }
+                                """))
+                .andExpect(status().isNotFound());
     }
 
     // Delete Chat
