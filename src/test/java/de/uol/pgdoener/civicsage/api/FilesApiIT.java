@@ -68,7 +68,7 @@ class FilesApiIT {
     @Test
     void testUploadFileNormal() throws Exception {
         MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 1".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 100".getBytes()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -143,11 +143,11 @@ class FilesApiIT {
     @Test
     void testDownloadFile() throws Exception {
         when(minioClient.getObject(any())).thenReturn(
-                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 2".getBytes()))
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 200".getBytes()))
         );
 
         MvcResult uploadResult = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 2".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 200".getBytes()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -159,7 +159,7 @@ class FilesApiIT {
                         .accept(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(status().isOk())
                 .andReturn();
-        assertEquals("file content 2", downloadResult.getResponse().getContentAsString());
+        assertEquals("file content 200", downloadResult.getResponse().getContentAsString());
         assertEquals("attachment; filename=\"test.txt\"", downloadResult.getResponse().getHeader("Content-Disposition"));
     }
 
@@ -168,7 +168,7 @@ class FilesApiIT {
     @Test
     void testUploadFileTemporary() throws Exception {
         MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 999".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 300".getBytes()))
                         .param("temporary", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -187,7 +187,7 @@ class FilesApiIT {
     @Test
     void testUploadFileTemporaryThenPermanent() throws Exception {
         MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 888".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 301".getBytes()))
                         .param("temporary", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -197,7 +197,61 @@ class FilesApiIT {
         String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
 
         mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 888".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 301".getBytes()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(minioClient, times(1)).putObject(any());
+        Optional<FileSource> fileSource = fileSourceRepository.findById(UUID.fromString(id));
+        assertTrue(fileSource.isPresent());
+        assertEquals("test.txt", fileSource.get().getFileName());
+        assertFalse(fileSource.get().isTemporary());
+    }
+
+    @Test
+    void testUploadFileTemporaryTwice() throws Exception {
+        MvcResult result1 = mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 302".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", UUID.class).isNotEmpty())
+                .andReturn();
+        String id1 = JsonPath.read(result1.getResponse().getContentAsString(), "$.id");
+
+        MvcResult result2 = mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 302".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", UUID.class).isNotEmpty())
+                .andReturn();
+        String id2 = JsonPath.read(result2.getResponse().getContentAsString(), "$.id");
+
+        assertEquals(id1, id2);
+        verify(minioClient, times(1)).putObject(any());
+        Optional<FileSource> fileSource = fileSourceRepository.findById(UUID.fromString(id1));
+        assertTrue(fileSource.isPresent());
+        assertEquals("test.txt", fileSource.get().getFileName());
+        assertTrue(fileSource.get().isTemporary());
+    }
+
+    @Test
+    void testUploadFilePermanentThenTemporary() throws Exception {
+        MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 303".getBytes()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", UUID.class).isNotEmpty())
+                .andReturn();
+        String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 303".getBytes()))
+                        .param("temporary", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -209,5 +263,23 @@ class FilesApiIT {
     }
 
     // Temporary file download
+
+    @Test
+    void testDownloadFileTemporary() throws Exception {
+        MvcResult uploadResult = mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 400".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String id = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        mockMvc.perform(get(API_BASE_PATH)
+                        .param("id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
 
 }
