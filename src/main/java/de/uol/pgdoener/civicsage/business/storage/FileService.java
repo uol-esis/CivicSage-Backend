@@ -56,7 +56,7 @@ public class FileService {
                 return fileSource.get().getObjectStorageId();
             } else {
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, "", timeFactory.getCurrentTime(), List.of(), Map.of(), true));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), true));
                 log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             }
