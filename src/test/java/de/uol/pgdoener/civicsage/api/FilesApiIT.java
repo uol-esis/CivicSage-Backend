@@ -3,6 +3,7 @@ package de.uol.pgdoener.civicsage.api;
 import com.jayway.jsonpath.JsonPath;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.FileSourceRepository;
+import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,12 +21,14 @@ import org.testcontainers.containers.MariaDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.ByteArrayInputStream;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -59,6 +62,8 @@ class FilesApiIT {
     static void afterAll() {
         mariadb.stop();
     }
+
+    // Normal file upload
 
     @Test
     void testUploadFileNormal() throws Exception {
@@ -104,10 +109,66 @@ class FilesApiIT {
         verify(minioClient, never()).putObject(any());
     }
 
+    // Normal file download
+
+    @Test
+    void testDownloadFileMissingId() throws Exception {
+        mockMvc.perform(get(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
+    void testDownloadFileInvalidId() throws Exception {
+        mockMvc.perform(get(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("id", "not-a-uuid")
+                        .accept(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+    @Test
+    void testDownloadFileNotFound() throws Exception {
+        mockMvc.perform(get(API_BASE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("id", UUID.randomUUID().toString())
+                        .accept(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(status().isNotFound())
+                .andReturn();
+    }
+
+    @Test
+    void testDownloadFile() throws Exception {
+        when(minioClient.getObject(any())).thenReturn(
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 2".getBytes()))
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart(API_BASE_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 2".getBytes()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String id = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        MvcResult downloadResult = mockMvc.perform(get(API_BASE_PATH)
+                        .param("id", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(status().isOk())
+                .andReturn();
+        assertEquals("file content 2", downloadResult.getResponse().getContentAsString());
+        assertEquals("attachment; filename=\"test.txt\"", downloadResult.getResponse().getHeader("Content-Disposition"));
+    }
+
+    // Temporary file upload
+
     @Test
     void testUploadFileTemporary() throws Exception {
         MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 2".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 999".getBytes()))
                         .param("temporary", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -126,7 +187,7 @@ class FilesApiIT {
     @Test
     void testUploadFileTemporaryThenPermanent() throws Exception {
         MvcResult result = mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 3".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 888".getBytes()))
                         .param("temporary", "true")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -136,7 +197,7 @@ class FilesApiIT {
         String id = JsonPath.read(result.getResponse().getContentAsString(), "$.id");
 
         mockMvc.perform(multipart(API_BASE_PATH)
-                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 3".getBytes()))
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 888".getBytes()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -146,5 +207,7 @@ class FilesApiIT {
         assertEquals("test.txt", fileSource.get().getFileName());
         assertFalse(fileSource.get().isTemporary());
     }
+
+    // Temporary file download
 
 }
