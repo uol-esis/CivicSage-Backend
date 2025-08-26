@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.business.index.document;
 
+import de.uol.pgdoener.civicsage.business.index.CivicSageUrlResource;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
 import lombok.NonNull;
@@ -40,7 +41,7 @@ public class DocumentReaderService {
 
         Resource resource;
         try {
-            resource = new UrlResource(url);
+            resource = new CivicSageUrlResource(url);
         } catch (Exception e) {
             throw new ReadUrlException("Invalid URL: " + url, e);
         }

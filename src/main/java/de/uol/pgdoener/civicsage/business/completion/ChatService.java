@@ -4,6 +4,7 @@ import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundExcep
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
+import de.uol.pgdoener.civicsage.business.index.CivicSageUrlResource;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
@@ -17,7 +18,6 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 
@@ -185,7 +185,7 @@ public class ChatService {
     private Media createMedia(URI uri, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
         try {
             Media media = Media.builder()
-                    .data(new UrlResource(uri))
+                    .data(new CivicSageUrlResource(uri))
                     .mimeType(Media.Format.DOC_HTML)
                     .build();
             mediaMetadataMap.put(media.getName(), MediaConversionAdvisor.MediaMetadata.forWebsite(uri.toString()));
