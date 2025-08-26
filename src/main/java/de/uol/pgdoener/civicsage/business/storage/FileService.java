@@ -6,12 +6,14 @@ import de.uol.pgdoener.civicsage.business.index.exception.StorageException;
 import de.uol.pgdoener.civicsage.business.source.FileHashingService;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceCollisionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,26 +32,56 @@ public class FileService {
     private final FileHashingService fileHashingService;
     private final TimeFactory timeFactory;
 
+    @Transactional
     public UUID storeFile(InputStreamSource iss, String fileName) {
         return storeFile(iss, fileName, false);
     }
 
+    @Transactional
     public UUID storeFile(InputStreamSource iss, String fileName, boolean temporary) {
+        String hash;
+        try {
+            hash = fileHashingService.hash(iss.getInputStream());
+        } catch (IOException e) {
+            throw new ReadFileException("Could not read file.", e);
+        }
+        Optional<FileSource> fileSource = sourceService.getFileSourceByHash(hash);
+
         if (temporary) {
-            UUID objectID = storeInStorage(iss);
-            sourceService.save(new FileSource(objectID, fileName, "", timeFactory.getCurrentTime(), List.of(), Map.of(), true));
-            log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
-            return objectID;
+            if (fileSource.isPresent() && fileSource.get().isTemporary()) {
+                log.info("Temporary file {} already exists with ID {}", fileName, fileSource.get().getObjectStorageId());
+                return fileSource.get().getObjectStorageId();
+            } else if (fileSource.isPresent()) {
+                log.info("File {} already exists as permanent file with ID {}", fileName, fileSource.get().getObjectStorageId());
+                return fileSource.get().getObjectStorageId();
+            } else {
+                UUID objectID = storeInStorage(iss);
+                sourceService.save(new FileSource(objectID, fileName, "", timeFactory.getCurrentTime(), List.of(), Map.of(), true));
+                log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
+                return objectID;
+            }
         } else {
-            try {
-                String hash = fileHashingService.hash(iss.getInputStream());
-                sourceService.verifyFileHashNotIndexed(hash);
+            if (fileSource.isPresent() && !fileSource.get().isTemporary()) {
+                log.info("File {} already exists with ID {}", fileName, fileSource.get().getObjectStorageId());
+                throw new SourceCollisionException("File is already uploaded");
+            } else if (fileSource.isPresent()) {
+                log.info("File {} already exists as temporary file with ID {}, updating to permanent", fileName, fileSource.get().getObjectStorageId());
+                FileSource existing = fileSource.get();
+                FileSource updated = new FileSource(
+                        existing.getObjectStorageId(),
+                        fileName, hash,
+                        existing.getUploadDate(),
+                        existing.getModels(),
+                        existing.getMetadata(),
+                        false
+                );
+                sourceService.save(updated);
+                return existing.getObjectStorageId();
+            } else {
                 UUID objectID = storeInStorage(iss);
                 sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false));
                 log.info("File {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
-            } catch (IOException e) {
-                throw new ReadFileException("Could not read file.", e);
             }
         }
     }

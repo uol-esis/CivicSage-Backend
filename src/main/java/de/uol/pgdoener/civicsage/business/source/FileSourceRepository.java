@@ -21,4 +21,6 @@ public interface FileSourceRepository
 
     Optional<FileSource> findByObjectStorageIdAndTemporaryIsFalse(UUID id);
 
+    Optional<FileSource> getFileSourceByHash(String hash);
+
 }

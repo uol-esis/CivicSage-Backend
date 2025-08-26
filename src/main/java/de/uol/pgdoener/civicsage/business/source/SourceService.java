@@ -41,7 +41,7 @@ public class SourceService {
     }
 
     public Optional<FileSource> getFileSourceByHash(String hash) {
-        return fileSourceRepository.getFileSourceByHashAndTemporaryIsFalse(hash);
+        return fileSourceRepository.getFileSourceByHash(hash);
     }
 
     public Optional<WebsiteSource> getWebsiteSourceByUrl(String url) {
