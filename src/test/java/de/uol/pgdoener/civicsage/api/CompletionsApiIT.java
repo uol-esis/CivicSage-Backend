@@ -4,6 +4,8 @@ import com.jayway.jsonpath.JsonPath;
 import de.uol.pgdoener.civicsage.business.completion.Chat;
 import de.uol.pgdoener.civicsage.business.completion.ChatRepository;
 import de.uol.pgdoener.civicsage.business.completion.Role;
+import de.uol.pgdoener.civicsage.business.source.FileSource;
+import de.uol.pgdoener.civicsage.business.source.FileSourceRepository;
 import de.uol.pgdoener.civicsage.test.support.DummyEmbeddingModel;
 import de.uol.pgdoener.civicsage.test.support.MariaDBContainerFactory;
 import io.minio.GetObjectArgs;
@@ -40,9 +42,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.endsWith;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -73,6 +77,8 @@ class CompletionsApiIT {
     MockMvc mockMvc;
     @Autowired
     ChatRepository chatRepository;
+    @Autowired
+    FileSourceRepository fileSourceRepository;
     @Autowired
     VectorStore vectorStore;
 
@@ -702,5 +708,327 @@ class CompletionsApiIT {
         Optional<Chat> deletedChat = chatRepository.findById(uuid);
         assertTrue(deletedChat.isEmpty());
     }
+
+    @Test
+    void testChatApiDeleteTwice() throws Exception {
+        MvcResult result = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String id = JsonPath.read(result.getResponse().getContentAsString(), "$.chatId");
+        UUID uuid = UUID.fromString(id);
+
+        Optional<Chat> chat = chatRepository.findById(uuid);
+        assertTrue(chat.isPresent());
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", id)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat = chatRepository.findById(uuid);
+        assertTrue(deletedChat.isEmpty());
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", id)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testChatApiDeleteNoId() throws Exception {
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testChatApiDeleteEmptyId() throws Exception {
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", "")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testChatApiDeleteNullId() throws Exception {
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", (String) null)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testChatApiDeleteWithPermanentFile() throws Exception {
+        when(minioClient.getObject(any())).thenAnswer(invocation ->
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 400".getBytes()))
+        );
+        when(chatModel.call(any(Prompt.class))).thenReturn(
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null)
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 400".getBytes()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String fileId = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        MvcResult chatResult = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(chatResult.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "role": "user",
+                                  "content": "Here is a file.",
+                                  "files": ["%s"]
+                                }
+                                """, fileId)))
+                .andExpect(status().isOk());
+
+        FileSource fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertFalse(fileSource.isTemporary());
+        assertTrue(fileSource.getUsedByChats().isEmpty());
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat = chatRepository.findById(UUID.fromString(chatId));
+        assertTrue(deletedChat.isEmpty());
+        verify(minioClient, never()).removeObject(any());
+        fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertFalse(fileSource.isTemporary());
+        assertTrue(fileSource.getUsedByChats().isEmpty());
+    }
+
+    @Test
+    void testChatApiDeleteWithTemporaryFile() throws Exception {
+        when(minioClient.getObject(any())).thenAnswer(invocation ->
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 500".getBytes()))
+        );
+        when(chatModel.call(any(Prompt.class))).thenReturn(
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null)
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 500".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String fileId = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        MvcResult chatResult = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(chatResult.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "role": "user",
+                                  "content": "Here is a file.",
+                                  "files": ["%s"]
+                                }
+                                """, fileId)))
+                .andExpect(status().isOk());
+
+        FileSource fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertTrue(fileSource.isTemporary());
+        assertEquals(1, fileSource.getUsedByChats().size());
+        assertTrue(fileSource.getUsedByChats().contains(UUID.fromString(chatId)));
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat = chatRepository.findById(UUID.fromString(chatId));
+        assertTrue(deletedChat.isEmpty());
+        verify(minioClient).removeObject(argThat(argument -> argument.object().equals(fileId)));
+        Optional<FileSource> deletedFileSource = fileSourceRepository.findById(UUID.fromString(fileId));
+        assertTrue(deletedFileSource.isEmpty());
+    }
+
+    @Test
+    void testChatApiDeleteWithTemporaryAndPermanentFile() throws Exception {
+        when(chatModel.call(any(Prompt.class))).thenReturn(
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null)
+        );
+
+        MvcResult uploadResult1 = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "permanent.txt", MediaType.TEXT_PLAIN_VALUE, "permanent file content".getBytes()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String permanentFileId = JsonPath.read(uploadResult1.getResponse().getContentAsString(), "$.id");
+
+        MvcResult uploadResult2 = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "temporary.txt", MediaType.TEXT_PLAIN_VALUE, "temporary file content".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String temporaryFileId = JsonPath.read(uploadResult2.getResponse().getContentAsString(), "$.id");
+        when(minioClient.getObject(any())).thenAnswer(invocation -> {
+            GetObjectArgs args = invocation.getArgument(0, GetObjectArgs.class);
+            if (args.object().equals(permanentFileId)) {
+                return new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("permanent file content".getBytes()));
+            } else if (args.object().equals(temporaryFileId)) {
+                return new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("temporary file content".getBytes()));
+            }
+            throw new IllegalArgumentException("Unknown file ID: " + args.object());
+        });
+
+        MvcResult chatResult = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(chatResult.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "role": "user",
+                                  "content": "Here are two files.",
+                                  "files": ["%s", "%s"]
+                                }
+                                """, permanentFileId, temporaryFileId)))
+                .andExpect(status().isOk());
+
+        verify(minioClient, never()).removeObject(any());
+        FileSource permanentFileSource = fileSourceRepository.findById(UUID.fromString(permanentFileId)).orElseThrow();
+        assertFalse(permanentFileSource.isTemporary());
+        assertEquals(0, permanentFileSource.getUsedByChats().size());
+        FileSource temporaryFileSource = fileSourceRepository.findById(UUID.fromString(temporaryFileId)).orElseThrow();
+        assertTrue(temporaryFileSource.isTemporary());
+        assertEquals(1, temporaryFileSource.getUsedByChats().size());
+        assertTrue(temporaryFileSource.getUsedByChats().contains(UUID.fromString(chatId)));
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat = chatRepository.findById(UUID.fromString(chatId));
+        assertTrue(deletedChat.isEmpty());
+        verify(minioClient).removeObject(argThat(argument -> argument.object().equals(temporaryFileId)));
+        verify(minioClient, never()).removeObject(argThat(argument -> argument.object().equals(permanentFileId)));
+        Optional<FileSource> deletedTemporaryFileSource = fileSourceRepository.findById(UUID.fromString(temporaryFileId));
+        assertTrue(deletedTemporaryFileSource.isEmpty());
+        permanentFileSource = fileSourceRepository.findById(UUID.fromString(permanentFileId)).orElseThrow();
+        assertFalse(permanentFileSource.isTemporary());
+        assertTrue(permanentFileSource.getUsedByChats().isEmpty());
+    }
+
+    @Test
+    void testChatApiSendMessageWithTemporaryFileUsedByTwoChats() throws Exception {
+        when(minioClient.getObject(any())).thenAnswer(invocation ->
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 600".getBytes()))
+        );
+        when(chatModel.call(any(Prompt.class))).thenReturn(
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null)
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 600".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String fileId = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        MvcResult chatResult1 = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId1 = JsonPath.read(chatResult1.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "role": "user",
+                                  "content": "Here is a file.",
+                                  "files": ["%s"]
+                                }
+                                """, fileId)))
+                .andExpect(status().isOk());
+
+        MvcResult chatResult2 = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId2 = JsonPath.read(chatResult2.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "role": "user",
+                                  "content": "Here is the same file.",
+                                  "files": ["%s"]
+                                }
+                                """, fileId)))
+                .andExpect(status().isOk());
+
+        FileSource fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertTrue(fileSource.isTemporary());
+        assertEquals(2, fileSource.getUsedByChats().size());
+        assertTrue(fileSource.getUsedByChats().contains(UUID.fromString(chatId1)));
+        assertTrue(fileSource.getUsedByChats().contains(UUID.fromString(chatId2)));
+        verify(minioClient, never()).removeObject(any());
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", chatId1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat1 = chatRepository.findById(UUID.fromString(chatId1));
+        assertTrue(deletedChat1.isEmpty());
+        fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertTrue(fileSource.isTemporary());
+        assertEquals(1, fileSource.getUsedByChats().size());
+        assertTrue(fileSource.getUsedByChats().contains(UUID.fromString(chatId2)));
+        verify(minioClient, never()).removeObject(any());
+
+        mockMvc.perform(delete(API_BASE_PATH)
+                        .param("chatId", chatId2)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        Optional<Chat> deletedChat2 = chatRepository.findById(UUID.fromString(chatId2));
+        assertTrue(deletedChat2.isEmpty());
+        verify(minioClient).removeObject(argThat(argument -> argument.object().equals(fileId)));
+        Optional<FileSource> deletedFileSource = fileSourceRepository.findById(UUID.fromString(fileId));
+        assertTrue(deletedFileSource.isEmpty());
+    }
+
 
 }

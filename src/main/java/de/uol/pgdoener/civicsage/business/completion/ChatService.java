@@ -169,7 +169,7 @@ public class ChatService {
                     fileSource.getUploadDate(),
                     fileSource.getModels(),
                     fileSource.getMetadata(),
-                    false,
+                    fileSource.isTemporary(),
                     chatsUsingFile
             );
             sourceService.save(fileSource);
@@ -238,6 +238,9 @@ public class ChatService {
             Optional<FileSource> optionalFileSource = sourceService.getFileSourceByIdWithTemporary(fileId);
             if (optionalFileSource.isEmpty()) {
                 log.warn("File with ID {} not found while cleaning up after chat deletion", fileId);
+                continue;
+            } else if (!optionalFileSource.get().isTemporary()) {
+                log.debug("File with ID {} is not temporary, skipping cleanup", fileId);
                 continue;
             }
             FileSource fileSource = optionalFileSource.get();
