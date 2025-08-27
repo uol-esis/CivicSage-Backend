@@ -34,7 +34,7 @@ public class FileService {
 
     @Transactional
     public UUID storeFile(InputStreamSource iss, String fileName) {
-        return storeFile(iss, fileName, false);
+        return storeFile(iss, fileName, false); // NOSONAR
     }
 
     @Transactional
@@ -56,7 +56,7 @@ public class FileService {
                 return fileSource.get().getObjectStorageId();
             } else {
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), true));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), true, List.of()));
                 log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             }
@@ -73,13 +73,14 @@ public class FileService {
                         existing.getUploadDate(),
                         existing.getModels(),
                         existing.getMetadata(),
-                        false
+                        false,
+                        List.of() // We do not care about chats using permanent files. So we clear the list here.
                 );
                 sourceService.save(updated);
                 return existing.getObjectStorageId();
             } else {
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false, List.of()));
                 log.info("File {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             }

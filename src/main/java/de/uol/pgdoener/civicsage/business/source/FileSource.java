@@ -44,4 +44,7 @@ public class FileSource {
     @Column(nullable = false)
     private boolean temporary;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<UUID> usedByChats;
+
 }

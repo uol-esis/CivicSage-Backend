@@ -9,7 +9,9 @@ import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.CivicSageUrlResource;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
+import de.uol.pgdoener.civicsage.business.source.FileSource;
 import de.uol.pgdoener.civicsage.business.source.SourceService;
+import de.uol.pgdoener.civicsage.business.source.exception.SourceNotFoundException;
 import de.uol.pgdoener.civicsage.business.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.springframework.ai.content.Media;
 import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeType;
 
 import java.net.MalformedURLException;
@@ -50,6 +53,7 @@ public class ChatService {
                 .map(chatMapper::toDto);
     }
 
+    @Transactional
     public void updateChat(UUID chatId, ChatDto chatDto) {
         final Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(ChatNotFoundException::new);
@@ -76,6 +80,7 @@ public class ChatService {
         chatRepository.save(newChat);
     }
 
+    @Transactional
     public ChatDto sendMessage(UUID chatId, ChatMessageDto message) {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(ChatNotFoundException::new);
@@ -86,7 +91,7 @@ public class ChatService {
 
         Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap = new HashMap<>();
         List<Message> messages = chat.getMessages().stream()
-                .map(cm -> createMessage(cm, mediaMetadataMap))
+                .map(cm -> createMessage(chat, cm, mediaMetadataMap))
                 .toList();
         log.debug("Sending message to chat {} with {} messages", chatId, messages.size());
 
@@ -130,9 +135,9 @@ public class ChatService {
         return content;
     }
 
-    private Message createMessage(ChatMessage chatMessage, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+    private Message createMessage(Chat chat, ChatMessage chatMessage, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
         List<Media> mediaList = new ArrayList<>(chatMessage.getFileIds().stream()
-                .map(fileId -> createMedia(fileId, mediaMetadataMap))
+                .map(fileId -> createMedia(chat, fileId, mediaMetadataMap))
                 .toList());
         mediaList.addAll(chatMessage.getUrls().stream()
                 .map(uri -> createMedia(uri, mediaMetadataMap))
@@ -152,8 +157,24 @@ public class ChatService {
         };
     }
 
-    private Media createMedia(UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
-        String fileName = sourceService.getFileSourceByIdWithTemporary(fileId).getFileName();
+    private Media createMedia(Chat chat, UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+        FileSource fileSource = sourceService.getFileSourceByIdWithTemporary(fileId).orElseThrow(() -> new SourceNotFoundException("Could not find file source with ID: " + fileId));
+        if (fileSource.isTemporary()) {
+            List<UUID> chatsUsingFile = fileSource.getUsedByChats();
+            chatsUsingFile.add(chat.getId());
+            fileSource = new FileSource(
+                    fileSource.getObjectStorageId(),
+                    fileSource.getFileName(),
+                    fileSource.getHash(),
+                    fileSource.getUploadDate(),
+                    fileSource.getModels(),
+                    fileSource.getMetadata(),
+                    false,
+                    chatsUsingFile
+            );
+            sourceService.save(fileSource);
+        }
+        String fileName = fileSource.getFileName();
         Media media;
         try {
             media = storageService.load(fileId)
@@ -202,12 +223,45 @@ public class ChatService {
         }
     }
 
+    @Transactional
     public void deleteChat(UUID chatId) {
-        if (!chatRepository.existsById(chatId)) {
+        Optional<Chat> optionalChat = chatRepository.findById(chatId);
+        if (optionalChat.isEmpty()) {
             throw new ChatNotFoundException();
         }
         chatRepository.deleteById(chatId);
-        // FIXME delete associated files if not use by other chats and the file is temporary
+        List<UUID> fileIdsToCheck = optionalChat.get().getMessages().stream()
+                .flatMap(m -> m.getFileIds().stream())
+                .distinct()
+                .toList();
+        for (UUID fileId : fileIdsToCheck) {
+            Optional<FileSource> optionalFileSource = sourceService.getFileSourceByIdWithTemporary(fileId);
+            if (optionalFileSource.isEmpty()) {
+                log.warn("File with ID {} not found while cleaning up after chat deletion", fileId);
+                continue;
+            }
+            FileSource fileSource = optionalFileSource.get();
+            List<UUID> chatsUsingFile = fileSource.getUsedByChats();
+            chatsUsingFile.remove(chatId);
+            if (chatsUsingFile.isEmpty()) {
+                log.debug("No more chats using file ID {}, deleting file", fileId);
+                sourceService.deleteSource(fileId);
+                storageService.delete(fileId);
+            } else {
+                FileSource updatedFileSource = new FileSource(
+                        fileSource.getObjectStorageId(),
+                        fileSource.getFileName(),
+                        fileSource.getHash(),
+                        fileSource.getUploadDate(),
+                        fileSource.getModels(),
+                        fileSource.getMetadata(),
+                        fileSource.isTemporary(),
+                        chatsUsingFile
+                );
+                sourceService.save(updatedFileSource);
+                log.debug("File ID {} is still used by other chats, not deleting", fileId);
+            }
+        }
     }
 
 }

@@ -33,11 +33,8 @@ public class SourceService {
         return optionalFileSource.get();
     }
 
-    public FileSource getFileSourceByIdWithTemporary(UUID id) {
-        Optional<FileSource> optionalFileSource = fileSourceRepository.findById(id);
-        if (optionalFileSource.isEmpty())
-            throw new SourceNotFoundException("Could not find source with id +" + id);
-        return optionalFileSource.get();
+    public Optional<FileSource> getFileSourceByIdWithTemporary(UUID id) {
+        return fileSourceRepository.findById(id);
     }
 
     public Optional<FileSource> getFileSourceByHash(String hash) {
