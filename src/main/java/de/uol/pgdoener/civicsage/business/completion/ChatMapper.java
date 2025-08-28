@@ -13,7 +13,6 @@ public class ChatMapper {
 
     /**
      * Converts a Chat entity to a ChatDto.
-     * Messages with the SYSTEM role are filtered out.
      * The reference to the embeddings list is preserved.
      *
      * @param chat the Chat entity to convert
@@ -23,7 +22,6 @@ public class ChatMapper {
         return new ChatDto()
                 .chatId(chat.getId())
                 .messages(chat.getMessages().stream()
-                        .filter(chatMessage -> chatMessage.getRole() != Role.SYSTEM)
                         .map(this::toDto)
                         .toList())
                 .embeddings(chat.getDocumentIds())
@@ -50,14 +48,11 @@ public class ChatMapper {
      *
      * @param role the Role enum to convert
      * @return the corresponding ChatMessageDto.RoleEnum
-     * @throws IllegalArgumentException if the role is SYSTEM, as there is no corresponding DTO role. System messages
-     *                                  should be set as system prompt in ChatDto.
      */
-    public ChatMessageDto.RoleEnum toDto(@NonNull Role role) throws IllegalArgumentException {
+    public ChatMessageDto.RoleEnum toDto(@NonNull Role role) {
         return switch (role) {
             case USER -> ChatMessageDto.RoleEnum.USER;
             case ASSISTANT -> ChatMessageDto.RoleEnum.ASSISTANT;
-            case SYSTEM -> throw new IllegalArgumentException("System role is not supported in DTO conversion");
         };
     }
 

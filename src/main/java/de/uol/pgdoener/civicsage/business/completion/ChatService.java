@@ -112,6 +112,12 @@ public class ChatService {
     /**
      * Sends a message in the specified chat.
      * If the chat is not found, a ChatNotFoundException is thrown.
+     * It creates a ChatMessage entity from the provided ChatMessageDto and adds it to the chat's messages.
+     * It then prepares the messages for the chat model, including converting file IDs and URLs to Media objects.
+     * The chat model is called with the system prompt, document IDs, media metadata, and messages from the chat object.
+     * If the model call fails due to rate limiting, a ChatRateLimitException is thrown.
+     * The response from the model is added as an assistant message to the chat's messages.
+     * Finally, the updated chat is saved to the repository and returned as a ChatDto.
      *
      * @param chatId  the ID of the chat to send the message in
      * @param message the ChatMessageDto containing the message data
@@ -150,7 +156,19 @@ public class ChatService {
         return chatMapper.toDto(updatedChat);
     }
 
-    private String callModel(Chat chat, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap, List<Message> messages) {
+    /**
+     * Calls the chat model for the provided chat with the given messages.
+     * It also passes the media metadata and document IDs as context parameters to the advisors.
+     * Handles rate limit problems by throwing a ChatRateLimitException.
+     *
+     * @param chat             the chat which contains the system prompt and document IDs
+     * @param mediaMetadataMap a map of media IDs to their metadata
+     * @param messages         the list of messages to send to the model
+     * @return the content of the model's response
+     * @throws ChatRateLimitException if the model call fails due to rate limiting
+     */
+    private String callModel(Chat chat, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap, List<Message> messages)
+            throws ChatRateLimitException {
         String content;
         try {
             content = chatClient.prompt()
@@ -173,7 +191,23 @@ public class ChatService {
         return content;
     }
 
-    private Message createMessage(Chat chat, ChatMessage chatMessage, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+    /**
+     * Creates a Spring AI Message object from a ChatMessage.
+     * It processes both file IDs and URLs to create Media objects, collecting their metadata in the provided map.
+     * The message type (UserMessage or AssistantMessage) is determined by the role of the ChatMessage.
+     * System role messages are not supported and will throw an IllegalArgumentException.
+     * It also converts files and URLs to Media objects.
+     *
+     * @param chat             the chat which contains the message
+     * @param chatMessage      the ChatMessage to convert
+     * @param mediaMetadataMap the map to store media metadata
+     * @return the created Message object
+     * @throws ReadFileException        if a file cannot be found or read
+     * @throws ReadUrlException         if a URL is malformed or cannot be read
+     * @throws IllegalArgumentException if the message role is SYSTEM
+     */
+    private Message createMessage(Chat chat, ChatMessage chatMessage, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap)
+            throws ReadFileException, ReadUrlException, IllegalArgumentException {
         List<Media> mediaList = new ArrayList<>(chatMessage.getFileIds().stream()
                 .map(fileId -> createMedia(chat, fileId, mediaMetadataMap))
                 .toList());
@@ -191,20 +225,20 @@ public class ChatService {
                     List.of(),
                     mediaList
             );
-            case SYSTEM -> throw new IllegalArgumentException("System role is not supported in message creation");
         };
     }
 
     /**
      * Creates a Media object from a file ID and adds its metadata to the provided map.
      * If the file is temporary and not already associated with the chat, the chat ID is added to the file's usedByChats
-     * list.
+     * set.
      * If the file cannot be found or read, a ReadFileException is thrown.
      *
-     * @param chat
-     * @param fileId
-     * @param mediaMetadataMap
-     * @return
+     * @param chat             the chat which is using the file
+     * @param fileId           the ID of the file to create the Media from
+     * @param mediaMetadataMap the map to store media metadata
+     * @return the created Media object
+     * @throws ReadFileException if the file cannot be found or read
      */
     private Media createMedia(Chat chat, UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap)
             throws ReadFileException {
