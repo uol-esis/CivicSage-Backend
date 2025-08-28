@@ -19,6 +19,37 @@ import org.springframework.core.io.ByteArrayResource;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This advisor converts {@link Media} objects in user messages to text and prepends the text to the message content.
+ * It uses the {@link DocumentReaderService} to read the content of the media.
+ * This advisor can be used to use media files and website screenshots as part of the prompt with models that do not
+ * support media natively.
+ * <p>
+ * The media metadata must be provided in the context using the key {@link #MEDIA_METADATA_CONTEXT_KEY}.
+ * The value must be an instance of a {@link Map} from {@link String} to {@link MediaMetadata}.
+ * The key of the map is the media ID.
+ * The map must have an entry for each media object in the prompt.
+ * The {@link MediaMetadata} provides the necessary information to read the media content.
+ * Finally, the media content is removed from all messages.
+ * <p>
+ * You can pass the media metadata to the context like this:
+ * <pre>
+ * {@code
+ * Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap = new HashMap<>();
+ * mediaMetadataMap.put(mediaId1, MediaConversionAdvisor.MediaMetadata.forFile("document.pdf"));
+ * mediaMetadataMap.put(mediaId2, MediaConversionAdvisor.MediaMetadata.forWebsite("https://example.com"));
+ * ...
+ * chatClient.prompt()
+ *     .advisors(advisor ->
+ *         advisor.param(MediaConversionAdvisor.MEDIA_METADATA_CONTEXT_KEY, mediaMetadataMap);
+ *     )
+ *     .messages(messages)
+ *     .call()
+ * }
+ * </pre>
+ *
+ * @see MediaMetadata
+ */
 @Slf4j
 @Builder
 @RequiredArgsConstructor
@@ -75,21 +106,13 @@ public class MediaConversionAdvisor implements BaseAdvisor {
     }
 
     private String convertMediaToText(Media media, MediaMetadata metadata) {
-        List<Document> documents;
-        switch (metadata) {
-            case FileMetadata(String fileName) -> {
-                documents = documentReaderService.read(new ByteArrayResource(media.getDataAsByteArray()), fileName);
-                log.debug("Read {} documents from FileMedia", documents.size());
-            }
-            case WebsiteMetadata(String url) -> {
-                documents = documentReaderService.readURL(url, new ByteArrayResource(media.getDataAsByteArray()));
-                log.debug("Read {} documents from WebsiteMedia", documents.size());
-            }
-            default -> {
-                log.warn("Unsupported media type: {}", media.getData().getClass());
-                return "";
-            }
-        }
+        List<Document> documents = switch (metadata) {
+            case FileMetadata(String fileName) ->
+                    documentReaderService.read(new ByteArrayResource(media.getDataAsByteArray()), fileName);
+            case WebsiteMetadata(String url) ->
+                    documentReaderService.readURL(url, new ByteArrayResource(media.getDataAsByteArray()));
+        };
+        log.debug("Read {} documents from Media", documents.size());
         return documents.stream()
                 .map(Document::getText)
                 .reduce("", (acc, text) -> acc + "\n" + text).trim();
@@ -106,11 +129,28 @@ public class MediaConversionAdvisor implements BaseAdvisor {
         return 0;
     }
 
+    /**
+     * This represents metadata for a media object.
+     * It is used to provide additional information about the media to the advisor.
+     * The metadata is needed to correctly read the media content.
+     */
     public sealed interface MediaMetadata permits FileMetadata, WebsiteMetadata {
+        /**
+         * Creates metadata for a media object containing a file.
+         *
+         * @param fileName the name of the file, including the extension
+         * @return the metadata to pass to the advisor
+         */
         static MediaMetadata forFile(String fileName) {
             return new FileMetadata(fileName);
         }
 
+        /**
+         * Creates metadata for a media object containing the content of a website.
+         *
+         * @param url the URL of the website
+         * @return the metadata to pass to the advisor
+         */
         static MediaMetadata forWebsite(String url) {
             return new WebsiteMetadata(url);
         }

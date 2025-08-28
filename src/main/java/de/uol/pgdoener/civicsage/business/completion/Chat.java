@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entity representing a chat in the database.
+ * A chat consists of a list of messages, a system prompt, and associated document IDs.
+ * The messages are stored in the order they were added.
+ * The chat is identified by a unique UUID.
+ * The id is generated automatically.
+ */
 @Entity
 @Getter
 @AllArgsConstructor

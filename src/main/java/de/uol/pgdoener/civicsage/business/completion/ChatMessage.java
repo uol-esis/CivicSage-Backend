@@ -9,6 +9,12 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entity representing a chat message in the database.
+ * A chat message is associated with a chat, has a role (user or assistant), content, and optional file IDs and URLs.
+ * The message is identified by a unique UUID.
+ * The id is generated automatically.
+ */
 @Entity
 @Getter
 @AllArgsConstructor
