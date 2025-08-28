@@ -6,6 +6,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Factory for creating default Chat instances.
+ * The system prompt is fetched from AIProperties.
+ * The created chat has no embeddings for context and no messages.
+ */
 @Component
 @RequiredArgsConstructor
 public class DefaultChatFactory implements ChatFactory {

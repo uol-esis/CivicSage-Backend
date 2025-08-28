@@ -17,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -56,7 +53,7 @@ public class FileService {
                 return fileSource.get().getObjectStorageId();
             } else {
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), true, List.of()));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), true, Set.of()));
                 log.info("Temporary file {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             }
@@ -74,13 +71,13 @@ public class FileService {
                         existing.getModels(),
                         existing.getMetadata(),
                         false,
-                        List.of() // We do not care about chats using permanent files. So we clear the list here.
+                        Set.of() // We do not care about chats using permanent files. So we clear the list here.
                 );
                 sourceService.save(updated);
                 return existing.getObjectStorageId();
             } else {
                 UUID objectID = storeInStorage(iss);
-                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false, List.of()));
+                sourceService.save(new FileSource(objectID, fileName, hash, timeFactory.getCurrentTime(), List.of(), Map.of(), false, Set.of()));
                 log.info("File {} uploaded successfully with ID {}", fileName, objectID);
                 return objectID;
             }

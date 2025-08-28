@@ -42,19 +42,48 @@ public class ChatService {
     private final StorageService storageService;
     private final SourceService sourceService;
 
+    /**
+     * Creates a new chat with a unique ID and empty message list.
+     * The chat is saved to the repository and returned as a ChatDto.
+     *
+     * @return the created ChatDto
+     */
     public ChatDto createChat() {
         Chat chat = chatFactory.createChat();
-        Chat savedChat = chatRepository.save(chat);
+        Chat savedChat = chatRepository.save(chat); // savedChat now has the generated ID
         return chatMapper.toDto(savedChat);
     }
 
-    public Optional<ChatDto> getChat(UUID chatId) {
+    /**
+     * Retrieves a chat by its ID.
+     * If the chat is found, it is converted to a ChatDto and returned.
+     * If not found, a ChatNotFoundException is thrown.
+     *
+     * @param chatId the ID of the chat to retrieve
+     * @return the ChatDto if found
+     * @throws ChatNotFoundException if the chat with the given ID does not exist
+     */
+    public ChatDto getChat(UUID chatId) throws ChatNotFoundException {
         return chatRepository.findById(chatId)
-                .map(chatMapper::toDto);
+                .map(chatMapper::toDto)
+                .orElseThrow(ChatNotFoundException::new);
     }
 
+    /**
+     * Updates an existing chat's document IDs and system prompt.
+     * If the chat is not found, a ChatNotFoundException is thrown.
+     * The chat id cannot be changed.
+     * If the new document IDs list is empty, the existing list is retained.
+     * If the new system prompt is not provided, the existing prompt is retained.
+     * The chat messages remain unchanged.
+     * The updated chat is saved to the repository.
+     *
+     * @param chatId  the ID of the chat to update
+     * @param chatDto the ChatDto containing the new data
+     * @throws ChatNotFoundException if the chat with the given ID does not exist
+     */
     @Transactional
-    public void updateChat(UUID chatId, ChatDto chatDto) {
+    public void updateChat(UUID chatId, ChatDto chatDto) throws ChatNotFoundException {
         final Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(ChatNotFoundException::new);
 
@@ -80,8 +109,17 @@ public class ChatService {
         chatRepository.save(newChat);
     }
 
+    /**
+     * Sends a message in the specified chat.
+     * If the chat is not found, a ChatNotFoundException is thrown.
+     *
+     * @param chatId  the ID of the chat to send the message in
+     * @param message the ChatMessageDto containing the message data
+     * @return the updated ChatDto after sending the message
+     * @throws ChatNotFoundException if the chat with the given ID does not exist
+     */
     @Transactional
-    public ChatDto sendMessage(UUID chatId, ChatMessageDto message) {
+    public ChatDto sendMessage(UUID chatId, ChatMessageDto message) throws ChatNotFoundException {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(ChatNotFoundException::new);
 
@@ -157,10 +195,22 @@ public class ChatService {
         };
     }
 
-    private Media createMedia(Chat chat, UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+    /**
+     * Creates a Media object from a file ID and adds its metadata to the provided map.
+     * If the file is temporary and not already associated with the chat, the chat ID is added to the file's usedByChats
+     * list.
+     * If the file cannot be found or read, a ReadFileException is thrown.
+     *
+     * @param chat
+     * @param fileId
+     * @param mediaMetadataMap
+     * @return
+     */
+    private Media createMedia(Chat chat, UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap)
+            throws ReadFileException {
         FileSource fileSource = sourceService.getFileSourceByIdWithTemporary(fileId).orElseThrow(() -> new SourceNotFoundException("Could not find file source with ID: " + fileId));
         if (fileSource.isTemporary()) {
-            List<UUID> chatsUsingFile = fileSource.getUsedByChats();
+            Set<UUID> chatsUsingFile = fileSource.getUsedByChats();
             chatsUsingFile.add(chat.getId());
             fileSource = new FileSource(
                     fileSource.getObjectStorageId(),
@@ -192,12 +242,19 @@ public class ChatService {
         return media;
     }
 
+    /**
+     * Determines the MIME type based on the file extension of the given file name.
+     *
+     * @param fileName the name of the file
+     * @return the corresponding MimeType
+     */
     private MimeType getMimeTypeForFileName(String fileName) {
         String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
         return switch (extension) {
             case "pdf" -> Media.Format.DOC_PDF;
             case "txt" -> Media.Format.DOC_TXT;
-            case "doc", "docx" -> Media.Format.DOC_DOCX;
+            case "docx" -> Media.Format.DOC_DOCX;
+            case "doc" -> Media.Format.DOC_DOC;
             // TODO add more formats
             default -> {
                 log.warn("Unknown file extension '{}', defaulting to TXT", extension);
@@ -206,7 +263,17 @@ public class ChatService {
         };
     }
 
-    private Media createMedia(URI uri, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap) {
+    /**
+     * Creates a Media object from a URI and adds its metadata to the provided map.
+     * If the URI is malformed or cannot be read, a ReadUrlException is thrown.
+     *
+     * @param uri              the URI to create the Media from
+     * @param mediaMetadataMap the map to store media metadata
+     * @return the created Media object
+     * @throws ReadUrlException if the URI is malformed or cannot be read
+     */
+    private Media createMedia(URI uri, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap)
+            throws ReadUrlException {
         try {
             Media media = Media.builder()
                     .id(UUID.randomUUID().toString())
@@ -223,8 +290,18 @@ public class ChatService {
         }
     }
 
+    /**
+     * Deletes a chat by its ID.
+     * If the chat is not found, a ChatNotFoundException is thrown.
+     * After deleting the chat, it checks all files associated with the chat's messages.
+     * If a file is marked as temporary and is not used by any other chats, it is deleted from both
+     * the database and object storage.
+     *
+     * @param chatId the ID of the chat to delete
+     * @throws ChatNotFoundException if the chat with the given ID does not exist
+     */
     @Transactional
-    public void deleteChat(UUID chatId) {
+    public void deleteChat(UUID chatId) throws ChatNotFoundException {
         Optional<Chat> optionalChat = chatRepository.findById(chatId);
         if (optionalChat.isEmpty()) {
             throw new ChatNotFoundException();
@@ -244,7 +321,7 @@ public class ChatService {
                 continue;
             }
             FileSource fileSource = optionalFileSource.get();
-            List<UUID> chatsUsingFile = fileSource.getUsedByChats();
+            Set<UUID> chatsUsingFile = fileSource.getUsedByChats();
             chatsUsingFile.remove(chatId);
             if (chatsUsingFile.isEmpty()) {
                 log.debug("No more chats using file ID {}, deleting file", fileId);

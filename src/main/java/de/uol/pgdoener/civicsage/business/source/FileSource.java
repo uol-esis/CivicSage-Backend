@@ -10,10 +10,7 @@ import org.hibernate.annotations.TimeZoneStorageType;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Getter
@@ -45,6 +42,6 @@ public class FileSource {
     private boolean temporary;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<UUID> usedByChats;
+    private Set<UUID> usedByChats;
 
 }

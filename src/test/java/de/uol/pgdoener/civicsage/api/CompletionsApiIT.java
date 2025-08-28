@@ -506,6 +506,62 @@ class CompletionsApiIT {
     }
 
     @Test
+    void testChatApiSendMessageWithTemporaryFileSecondInteraction() throws Exception {
+        when(chatModel.call(any(Prompt.class))).thenAnswer(invocation ->
+                new ChatResponse(List.of(new Generation(new AssistantMessage("Chat Model Response"))), null)
+        );
+        when(minioClient.getObject(any())).thenAnswer(invocation ->
+                new GetObjectResponse(null, null, null, null, new ByteArrayInputStream("file content 200".getBytes()))
+        );
+
+        MvcResult uploadResult = mockMvc.perform(multipart(API_FILE_UPLOAD_PATH)
+                        .file(new MockMultipartFile("file", "test.txt", MediaType.TEXT_PLAIN_VALUE, "file content 200".getBytes()))
+                        .param("temporary", "true")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String fileId = JsonPath.read(uploadResult.getResponse().getContentAsString(), "$.id");
+
+        MvcResult result = mockMvc.perform(get(API_BASE_PATH)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        String chatId = JsonPath.read(result.getResponse().getContentAsString(), "$.chatId");
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                    "role": "user",
+                                    "content": "Message 1",
+                                    "files": [
+                                        "%s"
+                                    ]
+                                }
+                                """, fileId)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post(API_BASE_PATH)
+                        .param("chatId", chatId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "role": "user",
+                                  "content": "Message 2"
+                                }
+                                """))
+                .andExpect(status().isOk());
+
+        FileSource fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
+        assertEquals(1, fileSource.getUsedByChats().size());
+        assertTrue(fileSource.getUsedByChats().contains(UUID.fromString(chatId)));
+    }
+
+    @Test
     void testChatApiSendMessageWithWebsiteURLs() throws Exception {
         when(chatModel.call(any(Prompt.class))).thenAnswer(invocation -> {
             Prompt prompt = invocation.getArgument(0);
