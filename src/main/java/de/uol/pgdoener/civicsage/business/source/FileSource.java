@@ -41,6 +41,7 @@ public class FileSource {
     @Column(nullable = false)
     private boolean temporary;
 
+    @Column(nullable = false)
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<UUID> usedByChats;
 

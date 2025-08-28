@@ -34,9 +34,11 @@ public class ChatMessage {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = false)
     @ElementCollection(fetch = FetchType.EAGER)
     private List<UUID> fileIds;
 
+    @Column(nullable = false)
     @ElementCollection(fetch = FetchType.EAGER)
     private List<URI> urls;
 

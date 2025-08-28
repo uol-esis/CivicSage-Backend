@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+/**
+ * Logic for storing and retrieving files via the /files API.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,13 +32,44 @@ public class FileService {
     private final FileHashingService fileHashingService;
     private final TimeFactory timeFactory;
 
+    /**
+     * Stores a file as a permanent file.
+     * See {@link #storeFile(InputStreamSource, String, boolean)} for details.
+     */
     @Transactional
     public UUID storeFile(InputStreamSource iss, String fileName) {
         return storeFile(iss, fileName, false); // NOSONAR
     }
 
+    /**
+     * Stores a file with the given file name and temporary flag. Depending on the temporary flag and whether the file
+     * already exists, different actions are taken:
+     *
+     * <ul>
+     * <li>If temporary is true and the file already exists as a temporary file, the existing file ID is returned.</li>
+     * <li>If temporary is true and the file already exists as a permanent file, the existing file ID is returned.</li>
+     * <li>If temporary is true and the file does not exist, it is stored as a temporary file.</li>
+     * <li>If temporary is false and the file already exists as a permanent file, a SourceCollisionException is thrown.
+     * </li>
+     * <li>If temporary is false and the file already exists as a temporary file, it is updated to a permanent file and
+     * the list with associated chats is emptied.</li>
+     * <li>If temporary is false and the file does not exist, it is stored as a permanent file.</li>
+     * </ul>
+     * <p>
+     * Whether the content of two files is the same is determined by hashing the file content and comparing the hashes.
+     * File names are not considered for this comparison.
+     *
+     * @param iss       InputStreamSource of the file to be stored
+     * @param fileName  Name of the file
+     * @param temporary Whether the file should be stored as temporary
+     * @return UUID of the stored file. It can be used to download the file later or reference it in indexing.
+     * @throws ReadFileException        If the file could not be read
+     * @throws StorageException         If the file could not be stored
+     * @throws SourceCollisionException If a permanent file with the same content already exists
+     */
     @Transactional
-    public UUID storeFile(InputStreamSource iss, String fileName, boolean temporary) {
+    public UUID storeFile(InputStreamSource iss, String fileName, boolean temporary)
+            throws ReadFileException, StorageException, SourceCollisionException {
         String hash;
         try {
             hash = fileHashingService.hash(iss.getInputStream());
@@ -84,6 +118,17 @@ public class FileService {
         }
     }
 
+    /**
+     * Loads a file from the storage by its ID.
+     * <p>
+     * If the file is found, it returns an Optional containing a DownloadFile object with the file's Resource and
+     * filename.
+     * If the file is not found, it returns an empty Optional.
+     *
+     * @param id UUID of the file to be loaded
+     * @return Optional containing the DownloadFile if found, otherwise empty
+     * @apiNote Files stored with the temporary flag set to true cannot be loaded via this method.
+     */
     public Optional<DownloadFile> loadFile(UUID id) {
         log.info("Looking for file with id {} in ObjectStorage", id);
         Optional<InputStream> optionalInputStream = storageService.load(id);
@@ -96,6 +141,12 @@ public class FileService {
         return Optional.of(new DownloadFile(inputStreamResource, fileName));
     }
 
+    /**
+     * A record representing a downloadable file, containing its content in a resource and filename.
+     *
+     * @param resource The resource containing the file's content
+     * @param filename The name of the file
+     */
     public record DownloadFile(Resource resource, String filename) {
     }
 

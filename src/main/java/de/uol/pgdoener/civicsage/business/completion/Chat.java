@@ -25,12 +25,14 @@ public class Chat {
     @GeneratedValue
     private UUID id;
 
+    @Column(nullable = false)
     @ElementCollection(fetch = FetchType.EAGER)
     private List<UUID> documentIds;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String systemPrompt;
 
+    @Column(nullable = false)
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @OrderColumn
     private List<ChatMessage> messages;
