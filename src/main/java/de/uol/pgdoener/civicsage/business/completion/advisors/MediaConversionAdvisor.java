@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * This advisor converts {@link Media} objects in user messages to text and prepends the text to the message content.
  * It uses the {@link DocumentReaderService} to read the content of the media.
- * This advisor can be used to use media files and website screenshots as part of the prompt with models that do not
+ * This advisor can be used to use files and websites as part of the prompt with models that do not
  * support media natively.
  * <p>
  * The media metadata must be provided in the context using the key {@link #MEDIA_METADATA_CONTEXT_KEY}.
