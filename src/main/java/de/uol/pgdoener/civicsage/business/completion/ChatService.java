@@ -128,6 +128,7 @@ public class ChatService {
     public ChatDto sendMessage(UUID chatId, ChatMessageDto message) throws ChatNotFoundException {
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(ChatNotFoundException::new);
+        message.role(ChatMessageDto.RoleEnum.USER); // Ensure the role is USER for incoming messages
 
         ChatMessage chatMessage = chatMapper.toEntity(chat, message);
         chat.getMessages().add(chatMessage);
