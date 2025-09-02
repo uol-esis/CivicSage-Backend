@@ -27,6 +27,18 @@ public class AIProperties {
                 - Wenn keine ausreichenden Informationen vorhanden sind: Sage "Dazu liegen keine Informationen vor."
                 """;
 
+        /**
+         * If a chat has not had any interaction after this duration, it will be deleted.
+         * Default is 4 days.
+         */
+        private Duration chatLifetime = Duration.ofDays(4);
+
+        /**
+         * If an uploaded file has not been used in any chat after this duration, it will be deleted.
+         * Default is 1 hour.
+         */
+        private Duration unusedFileLifetime = Duration.ofHours(1);
+
         @Data
         public static class Model {
             /**

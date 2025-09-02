@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
 import de.uol.pgdoener.civicsage.autoconfigure.AIProperties;
+import de.uol.pgdoener.civicsage.business.index.TimeFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.List;
 public class DefaultChatFactory implements ChatFactory {
 
     private final AIProperties aiProperties;
+    private final TimeFactory timeFactory;
 
     @Override
     public Chat createChat() {
@@ -23,7 +25,8 @@ public class DefaultChatFactory implements ChatFactory {
                 null,
                 List.of(),
                 aiProperties.getChat().getDefaultSystemPrompt(),
-                List.of()
+                List.of(),
+                timeFactory.getCurrentTime()
         );
     }
 

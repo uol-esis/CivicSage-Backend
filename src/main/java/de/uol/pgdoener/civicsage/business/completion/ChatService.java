@@ -7,6 +7,7 @@ import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitExce
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.CivicSageUrlResource;
+import de.uol.pgdoener.civicsage.business.index.TimeFactory;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadFileException;
 import de.uol.pgdoener.civicsage.business.index.exception.ReadUrlException;
 import de.uol.pgdoener.civicsage.business.source.FileSource;
@@ -41,6 +42,7 @@ public class ChatService {
     private final ChatClient chatClient;
     private final StorageService storageService;
     private final SourceService sourceService;
+    private final TimeFactory timeFactory;
 
     /**
      * Creates a new chat with a unique ID and empty message list.
@@ -104,7 +106,8 @@ public class ChatService {
                     log.debug("No new system prompt provided, keeping existing");
                     return chat.getSystemPrompt();
                 }),
-                chat.getMessages() // Keep the existing messages
+                chat.getMessages(), // Keep the existing messages
+                timeFactory.getCurrentTime()
         );
         chatRepository.save(newChat);
     }
@@ -150,6 +153,7 @@ public class ChatService {
                 List.of()
         );
         chat.getMessages().add(responseMessage);
+        chat.setLastInteraction(timeFactory.getCurrentTime());
         log.debug("Received response from chat completion");
 
         Chat updatedChat = chatRepository.save(chat);

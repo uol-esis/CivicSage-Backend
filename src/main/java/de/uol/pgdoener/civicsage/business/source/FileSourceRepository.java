@@ -3,6 +3,8 @@ package de.uol.pgdoener.civicsage.business.source;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,5 +24,7 @@ public interface FileSourceRepository
     Optional<FileSource> findByObjectStorageIdAndTemporaryIsFalse(UUID id);
 
     Optional<FileSource> getFileSourceByHash(String hash);
+
+    Collection<FileSource> getFileSourcesByUploadDateBeforeAndTemporaryIsTrueAndUsedByChatsIsEmpty(OffsetDateTime threshold);
 
 }

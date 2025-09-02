@@ -4,7 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.TimeZoneStorage;
+import org.hibernate.annotations.TimeZoneStorageType;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,5 +40,10 @@ public class Chat {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @OrderColumn
     private List<ChatMessage> messages;
+
+    @Setter
+    @Column(nullable = false)
+    @TimeZoneStorage(TimeZoneStorageType.COLUMN)
+    private OffsetDateTime lastInteraction;
 
 }
