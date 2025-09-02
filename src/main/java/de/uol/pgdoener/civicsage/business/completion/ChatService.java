@@ -350,30 +350,33 @@ public class ChatService {
             if (optionalFileSource.isEmpty()) {
                 log.warn("File with ID {} not found while cleaning up after chat deletion", fileId);
                 continue;
-            } else if (!optionalFileSource.get().isTemporary()) {
-                log.debug("File with ID {} is not temporary, skipping cleanup", fileId);
-                continue;
             }
             FileSource fileSource = optionalFileSource.get();
             Set<UUID> chatsUsingFile = fileSource.getUsedByChats();
             chatsUsingFile.remove(chatId);
-            if (chatsUsingFile.isEmpty()) {
-                log.debug("No more chats using file ID {}, deleting file", fileId);
-                sourceService.deleteSource(fileId);
-                storageService.delete(fileId);
+            if (fileSource.isTemporary()) {
+                log.debug("File with ID {} is temporary, checking if it can be deleted", fileId);
+                if (chatsUsingFile.isEmpty()) {
+                    log.debug("No more chats using file ID {}, deleting file", fileId);
+                    sourceService.deleteSource(fileId);
+                    storageService.delete(fileId);
+                } else {
+                    FileSource updatedFileSource = new FileSource(
+                            fileSource.getObjectStorageId(),
+                            fileSource.getFileName(),
+                            fileSource.getHash(),
+                            fileSource.getUploadDate(),
+                            fileSource.getModels(),
+                            fileSource.getMetadata(),
+                            fileSource.isTemporary(),
+                            chatsUsingFile
+                    );
+                    sourceService.save(updatedFileSource);
+                    log.debug("File ID {} is still used by other chats, not deleting", fileId);
+                }
             } else {
-                FileSource updatedFileSource = new FileSource(
-                        fileSource.getObjectStorageId(),
-                        fileSource.getFileName(),
-                        fileSource.getHash(),
-                        fileSource.getUploadDate(),
-                        fileSource.getModels(),
-                        fileSource.getMetadata(),
-                        fileSource.isTemporary(),
-                        chatsUsingFile
-                );
-                sourceService.save(updatedFileSource);
-                log.debug("File ID {} is still used by other chats, not deleting", fileId);
+                log.debug("File with ID {} is not temporary, skipping cleanup", fileId);
+                sourceService.save(fileSource);
             }
         }
     }
