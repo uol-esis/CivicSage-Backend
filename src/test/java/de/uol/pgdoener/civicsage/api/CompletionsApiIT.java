@@ -471,10 +471,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Hello, how are you?",
-                                  "files": [
-                                    "%s",
-                                    "%s"
-                                  ]
+                                    "files": [{"fileId": "%s"}, {"fileId": "%s"}]
                                 }
                                 """, fileId1, fileId2)))
                 .andExpect(status().isOk())
@@ -486,7 +483,8 @@ class CompletionsApiIT {
                 .andExpect(jsonPath("$.messages[0].role").value("user"))
                 .andExpect(jsonPath("$.messages[0].content", endsWith("Hello, how are you?")))
                 .andExpect(jsonPath("$.messages[0].files", hasSize(2)))
-                .andExpect(jsonPath("$.messages[0].files", contains(fileId1, fileId2)))
+                .andExpect(jsonPath("$.messages[0].files..fileId", containsInAnyOrder(fileId1, fileId2)))
+                .andExpect(jsonPath("$.messages[0].files..fileName", containsInAnyOrder("test.txt", "test2.txt")))
                 .andExpect(jsonPath("$.messages[0].websiteURLs", hasSize(0)))
                 .andExpect(jsonPath("$.messages[1].role").value("assistant"))
                 .andExpect(jsonPath("$.messages[1].content", String.class).value("Chat Model Response"))
@@ -538,9 +536,7 @@ class CompletionsApiIT {
                                 {
                                     "role": "user",
                                     "content": "Message 1",
-                                    "files": [
-                                        "%s"
-                                    ]
+                                    "files": [{"fileId": "%s"}]
                                 }
                                 """, fileId)))
                 .andExpect(status().isOk());
@@ -849,7 +845,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Here is a file.",
-                                  "files": ["%s"]
+                                  "files": [{"fileId": "%s"}]
                                 }
                                 """, fileId)))
                 .andExpect(status().isOk());
@@ -903,7 +899,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Here is a file.",
-                                  "files": ["%s"]
+                                  "files": [{"fileId": "%s"}]
                                 }
                                 """, fileId)))
                 .andExpect(status().isOk());
@@ -970,7 +966,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Here are two files.",
-                                  "files": ["%s", "%s"]
+                                  "files": [{"fileId": "%s"}, {"fileId": "%s"}]
                                 }
                                 """, permanentFileId, temporaryFileId)))
                 .andExpect(status().isOk());
@@ -1032,7 +1028,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Here is a file.",
-                                  "files": ["%s"]
+                                  "files": [{"fileId": "%s"}]
                                 }
                                 """, fileId)))
                 .andExpect(status().isOk());
@@ -1052,7 +1048,7 @@ class CompletionsApiIT {
                                 {
                                   "role": "user",
                                   "content": "Here is the same file.",
-                                  "files": ["%s"]
+                                  "files": [{"fileId": "%s"}]
                                 }
                                 """, fileId)))
                 .andExpect(status().isOk());

@@ -394,9 +394,8 @@ public class ChatService {
 
     private Map<ChatMessage, List<ChatFileDto>> getFileMappings(Chat chat) {
         return chat.getMessages().stream()
-                .collect(Collectors.groupingBy(
-                        msg -> msg,
-                        Collectors.flatMapping(
+                .collect(Collectors.toMap(
+                                msg -> msg,
                                 msg -> {
                                     Iterable<FileSource> fileSources = sourceService.getFileSourcesByIdWithTemporary(msg.getFileIds());
                                     List<ChatFileDto> chatFiles = new ArrayList<>();
@@ -405,11 +404,10 @@ public class ChatService {
                                                 .fileId(fileSource.getObjectStorageId())
                                                 .fileName(fileSource.getFileName()));
                                     }
-                                    return chatFiles.stream();
-                                },
-                                Collectors.toList()
+                                    return chatFiles;
+                                }
                         )
-                ));
+                );
     }
 
 }
