@@ -24,8 +24,8 @@ public class ScheduledFileDeletion {
     private final FileSourceRepository fileSourceRepository;
     private final SourceService sourceService;
 
-    @Scheduled(cron = "0 0 0 * * *")
-    public void deleteOldChats() {
+    @Scheduled(cron = "0 0 * * * *")
+    public void deleteOldFiles() {
         final Duration unusedFileLifetime = aiProperties.getChat().getUnusedFileLifetime();
         final OffsetDateTime now = timeFactory.getCurrentTime();
         final OffsetDateTime threshold = now.minus(unusedFileLifetime);
