@@ -58,8 +58,23 @@ public class SourcesController implements SourcesApiDelegate {
         if (!sourceService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        sourceService.deleteSource(id);
-        storageService.delete(id);
+        Optional<FileSource> fileSource = sourceService.getFileSourceByIdWithTemporary(id);
+        if (fileSource.isPresent() && !fileSource.get().isTemporary() && !fileSource.get().getUsedByChats().isEmpty()) {
+            FileSource newFileSource = new FileSource(
+                    UUID.randomUUID(),
+                    fileSource.get().getFileName(),
+                    fileSource.get().getHash(),
+                    fileSource.get().getUploadDate(),
+                    fileSource.get().getModels(),
+                    fileSource.get().getMetadata(),
+                    true,
+                    fileSource.get().getUsedByChats()
+            );
+            sourceService.save(newFileSource);
+        } else {
+            sourceService.deleteSource(id);
+            storageService.delete(id);
+        }
         return ResponseEntity.status(204).build();
     }
 

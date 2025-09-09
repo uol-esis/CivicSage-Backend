@@ -105,7 +105,7 @@ public class FileService {
                         existing.getModels(),
                         existing.getMetadata(),
                         false,
-                        Set.of() // We do not care about chats using permanent files. So we clear the list here.
+                        existing.getUsedByChats()
                 );
                 sourceService.save(updated);
                 return existing.getObjectStorageId();
