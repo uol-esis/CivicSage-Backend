@@ -37,6 +37,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -666,7 +667,8 @@ class CompletionsApiIT {
                 chatBefore.getId(),
                 documentIds,
                 chatBefore.getSystemPrompt(),
-                chatBefore.getMessages()
+                chatBefore.getMessages(),
+                OffsetDateTime.now()
         );
         chatRepository.save(chatBefore);
 
@@ -708,7 +710,8 @@ class CompletionsApiIT {
                 chatBefore.getId(),
                 List.of(UUID.randomUUID(), UUID.randomUUID()),
                 chatBefore.getSystemPrompt(),
-                chatBefore.getMessages()
+                chatBefore.getMessages(),
+                OffsetDateTime.now()
         );
         chatRepository.save(chatBefore);
 
