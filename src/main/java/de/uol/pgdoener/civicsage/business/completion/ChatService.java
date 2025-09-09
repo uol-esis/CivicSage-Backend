@@ -5,6 +5,7 @@ import de.uol.pgdoener.civicsage.business.completion.advisors.MediaConversionAdv
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatNotFoundException;
 import de.uol.pgdoener.civicsage.business.completion.exception.ChatRateLimitException;
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
+import de.uol.pgdoener.civicsage.business.dto.ChatFileDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import de.uol.pgdoener.civicsage.business.index.CivicSageUrlResource;
 import de.uol.pgdoener.civicsage.business.index.TimeFactory;
@@ -30,6 +31,7 @@ import org.springframework.util.MimeType;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -53,7 +55,7 @@ public class ChatService {
     public ChatDto createChat() {
         Chat chat = chatFactory.createChat();
         Chat savedChat = chatRepository.save(chat); // savedChat now has the generated ID
-        return chatMapper.toDto(savedChat);
+        return chatMapper.toDto(savedChat, Map.of());
     }
 
     /**
@@ -67,7 +69,10 @@ public class ChatService {
      */
     public ChatDto getChat(UUID chatId) throws ChatNotFoundException {
         return chatRepository.findById(chatId)
-                .map(chatMapper::toDto)
+                .map(chat -> {
+                    Map<ChatMessage, List<ChatFileDto>> filesForMessages = getFileMappings(chat);
+                    return chatMapper.toDto(chat, filesForMessages);
+                })
                 .orElseThrow(ChatNotFoundException::new);
     }
 
@@ -158,7 +163,8 @@ public class ChatService {
         log.debug("Received response from chat completion");
 
         Chat updatedChat = chatRepository.save(chat);
-        return chatMapper.toDto(updatedChat);
+        Map<ChatMessage, List<ChatFileDto>> filesForMessages = getFileMappings(updatedChat);
+        return chatMapper.toDto(updatedChat, filesForMessages);
     }
 
     /**
@@ -384,6 +390,26 @@ public class ChatService {
                 sourceService.save(fileSource);
             }
         }
+    }
+
+    private Map<ChatMessage, List<ChatFileDto>> getFileMappings(Chat chat) {
+        return chat.getMessages().stream()
+                .collect(Collectors.groupingBy(
+                        msg -> msg,
+                        Collectors.flatMapping(
+                                msg -> {
+                                    Iterable<FileSource> fileSources = sourceService.getFileSourcesByIdWithTemporary(msg.getFileIds());
+                                    List<ChatFileDto> chatFiles = new ArrayList<>();
+                                    for (FileSource fileSource : fileSources) {
+                                        chatFiles.add(new ChatFileDto()
+                                                .fileId(fileSource.getObjectStorageId())
+                                                .fileName(fileSource.getFileName()));
+                                    }
+                                    return chatFiles.stream();
+                                },
+                                Collectors.toList()
+                        )
+                ));
     }
 
 }

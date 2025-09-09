@@ -37,6 +37,10 @@ public class SourceService {
         return fileSourceRepository.findById(id);
     }
 
+    public Iterable<FileSource> getFileSourcesByIdWithTemporary(List<UUID> ids) {
+        return fileSourceRepository.findAllById(ids);
+    }
+
     public Optional<FileSource> getFileSourceByHash(String hash) {
         return fileSourceRepository.getFileSourceByHash(hash);
     }
@@ -82,4 +86,5 @@ public class SourceService {
     public Iterable<WebsiteSource> getWebsiteSourcesByIds(List<UUID> ids) {
         return websiteSourceRepository.findAllById(ids);
     }
+
 }

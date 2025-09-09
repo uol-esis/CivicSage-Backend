@@ -1,9 +1,13 @@
 package de.uol.pgdoener.civicsage.business.completion;
 
 import de.uol.pgdoener.civicsage.business.dto.ChatDto;
+import de.uol.pgdoener.civicsage.business.dto.ChatFileDto;
 import de.uol.pgdoener.civicsage.business.dto.ChatMessageDto;
 import lombok.NonNull;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Mapper for converting between Chat and ChatDto, ChatMessage and ChatMessageDto.
@@ -18,11 +22,11 @@ public class ChatMapper {
      * @param chat the Chat entity to convert
      * @return the corresponding ChatDto
      */
-    public ChatDto toDto(@NonNull Chat chat) {
+    public ChatDto toDto(@NonNull Chat chat, Map<ChatMessage, List<ChatFileDto>> chatMessages) {
         return new ChatDto()
                 .chatId(chat.getId())
                 .messages(chat.getMessages().stream()
-                        .map(this::toDto)
+                        .map(msg -> toDto(msg, chatMessages.getOrDefault(msg, List.of())))
                         .toList())
                 .embeddings(chat.getDocumentIds())
                 .systemPrompt(chat.getSystemPrompt());
@@ -35,11 +39,11 @@ public class ChatMapper {
      * @param chatMessage the ChatMessage entity to convert
      * @return the corresponding ChatMessageDto
      */
-    public ChatMessageDto toDto(@NonNull ChatMessage chatMessage) {
+    public ChatMessageDto toDto(@NonNull ChatMessage chatMessage, @NonNull List<ChatFileDto> files) {
         return new ChatMessageDto()
                 .role(toDto(chatMessage.getRole()))
                 .content(chatMessage.getContent())
-                .files(chatMessage.getFileIds())
+                .files(files)
                 .websiteURLs(chatMessage.getUrls());
     }
 
@@ -70,7 +74,7 @@ public class ChatMapper {
                 chat,
                 toEntity(message.getRole().orElseThrow()),
                 message.getContent().orElse(""),
-                message.getFiles(),
+                message.getFiles().stream().map(ChatFileDto::getFileId).toList(),
                 message.getWebsiteURLs()
         );
     }
