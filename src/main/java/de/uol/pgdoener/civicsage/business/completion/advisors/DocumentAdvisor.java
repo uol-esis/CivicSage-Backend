@@ -1,6 +1,7 @@
 package de.uol.pgdoener.civicsage.business.completion.advisors;
 
 import de.uol.pgdoener.civicsage.business.embedding.VectorStoreExtension;
+import de.uol.pgdoener.civicsage.business.index.document.MetadataKeys;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.ai.document.Document;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -27,6 +29,12 @@ import java.util.UUID;
 public class DocumentAdvisor implements BaseAdvisor {
 
     public static final String DOCUMENT_IDS_CONTEXT_KEY = "document-ids-context";
+    private static final String DOCUMENTS_SYSTEM_MESSAGE = """
+            Hier folgen Inhalte von Dokumenten, die bei der Beantwortung der Nutzerfrage hilfreich sein können.
+            Bitte berücksichtige diese Informationen bei der Beantwortung der Nutzerfrage.
+            Eine Quelle sieht wie folgt aus: "Suchergebnis aus der folgenden Quelle: [QUELLE] mit dem folgenden Titel: "[TITEL]": [INHALT]"
+            
+            """;
 
     private final VectorStoreExtension vectorStoreExtension;
 
@@ -57,7 +65,7 @@ public class DocumentAdvisor implements BaseAdvisor {
 
         prompt = prompt.augmentSystemMessage(systemMessage -> {
             String systemMessageText = systemMessage.getText();
-            systemMessageText += documentsText;
+            systemMessageText += DOCUMENTS_SYSTEM_MESSAGE + documentsText;
             return systemMessage.mutate().text(systemMessageText).build();
         });
 
@@ -73,7 +81,15 @@ public class DocumentAdvisor implements BaseAdvisor {
      */
     private String createDocumentText(List<Document> documents) {
         return documents.stream()
-                .map(Document::getText)
+                .map(document -> {
+                    String documentText = document.getText();
+                    String title = (String) document.getMetadata().getOrDefault(MetadataKeys.TITLE.getValue(), "Kein Titel");
+                    String fileName = (String) document.getMetadata().get(MetadataKeys.FILE_NAME.getValue());
+                    String url = (String) document.getMetadata().get(MetadataKeys.URL.getValue());
+                    String source = Objects.requireNonNullElseGet(fileName,
+                            () -> Objects.requireNonNullElse(url, "Unbekannte Quelle"));
+                    return "Suchergebnis aus der folgenden Quelle: " + source + " mit dem folgenden Titel: \"" + title + "\":\n" + documentText;
+                })
                 .reduce("", (current, d) -> current + d + "\n");
     }
 

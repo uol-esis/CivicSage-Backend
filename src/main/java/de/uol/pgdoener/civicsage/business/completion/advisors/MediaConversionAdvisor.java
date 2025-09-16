@@ -118,14 +118,14 @@ public class MediaConversionAdvisor implements BaseAdvisor {
                 .reduce("", (acc, text) -> acc + "\n" + text).trim();
         switch (metadata) {
             case FileMetadata(String fileName) ->
-                    mediaText = "The user provided a file named '" + fileName + "' with the following content:\n\n" + mediaText;
+                    mediaText = "Hier ist der Inhalt der Datei mit dem Namen: '" + fileName + ":\n\n" + mediaText;
             case WebsiteMetadata(String url) -> {
                 String title = documents.getFirst().getMetadata().get("title").toString();
                 if (title != null && !title.isBlank()) {
-                    mediaText = "The user provided the content of the website titled '" + title + "' at '" + url + "' with the following content:\n\n" + mediaText;
+                    mediaText = "Hier ist der Inhalt der Webseite mit dem Titel: \"" + title + "\" von der URL: " + url + ":\n\n" + mediaText;
                     break;
                 }
-                mediaText = "The user provided the content of the website at '" + url + "' with the following content:\n\n" + mediaText;
+                mediaText = "Hier ist der Inhalt der Webseite von der URL: " + url + ":\n\n" + mediaText;
             }
         }
         return mediaText;
