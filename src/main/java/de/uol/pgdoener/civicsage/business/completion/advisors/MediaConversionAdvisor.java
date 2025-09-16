@@ -113,9 +113,22 @@ public class MediaConversionAdvisor implements BaseAdvisor {
                     documentReaderService.readURL(url, new ByteArrayResource(media.getDataAsByteArray()));
         };
         log.debug("Read {} documents from Media", documents.size());
-        return documents.stream()
+        String mediaText = documents.stream()
                 .map(Document::getText)
                 .reduce("", (acc, text) -> acc + "\n" + text).trim();
+        switch (metadata) {
+            case FileMetadata(String fileName) ->
+                    mediaText = "The user provided a file named '" + fileName + "' with the following content:\n\n" + mediaText;
+            case WebsiteMetadata(String url) -> {
+                String title = documents.getFirst().getMetadata().get("title").toString();
+                if (title != null && !title.isBlank()) {
+                    mediaText = "The user provided the content of the website titled '" + title + "' at '" + url + "' with the following content:\n\n" + mediaText;
+                    break;
+                }
+                mediaText = "The user provided the content of the website at '" + url + "' with the following content:\n\n" + mediaText;
+            }
+        }
+        return mediaText;
     }
 
     @NotNull
