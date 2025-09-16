@@ -61,7 +61,7 @@ public class SourcesController implements SourcesApiDelegate {
         Optional<FileSource> fileSource = sourceService.getFileSourceByIdWithTemporary(id);
         if (fileSource.isPresent() && !fileSource.get().isTemporary() && !fileSource.get().getUsedByChats().isEmpty()) {
             FileSource newFileSource = new FileSource(
-                    UUID.randomUUID(),
+                    fileSource.get().getObjectStorageId(),
                     fileSource.get().getFileName(),
                     fileSource.get().getHash(),
                     fileSource.get().getUploadDate(),
