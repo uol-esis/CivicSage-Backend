@@ -65,7 +65,7 @@ public class SourcesController implements SourcesApiDelegate {
                     fileSource.get().getFileName(),
                     fileSource.get().getHash(),
                     fileSource.get().getUploadDate(),
-                    fileSource.get().getModels(),
+                    List.of(),
                     fileSource.get().getMetadata(),
                     true,
                     fileSource.get().getUsedByChats()
