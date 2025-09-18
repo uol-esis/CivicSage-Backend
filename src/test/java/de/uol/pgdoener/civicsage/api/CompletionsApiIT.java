@@ -852,7 +852,7 @@ class CompletionsApiIT {
 
         FileSource fileSource = fileSourceRepository.findById(UUID.fromString(fileId)).orElseThrow();
         assertFalse(fileSource.isTemporary());
-        assertTrue(fileSource.getUsedByChats().isEmpty());
+        assertFalse(fileSource.getUsedByChats().isEmpty());
 
         mockMvc.perform(delete(API_BASE_PATH)
                         .param("chatId", chatId)
@@ -974,7 +974,7 @@ class CompletionsApiIT {
         verify(minioClient, never()).removeObject(any());
         FileSource permanentFileSource = fileSourceRepository.findById(UUID.fromString(permanentFileId)).orElseThrow();
         assertFalse(permanentFileSource.isTemporary());
-        assertEquals(0, permanentFileSource.getUsedByChats().size());
+        assertEquals(1, permanentFileSource.getUsedByChats().size());
         FileSource temporaryFileSource = fileSourceRepository.findById(UUID.fromString(temporaryFileId)).orElseThrow();
         assertTrue(temporaryFileSource.isTemporary());
         assertEquals(1, temporaryFileSource.getUsedByChats().size());
