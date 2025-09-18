@@ -11,6 +11,7 @@ import de.uol.pgdoener.civicsage.business.source.SourceService;
 import de.uol.pgdoener.civicsage.business.source.WebsiteSource;
 import de.uol.pgdoener.civicsage.business.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SourcesController implements SourcesApiDelegate {
@@ -56,10 +58,12 @@ public class SourcesController implements SourcesApiDelegate {
     public ResponseEntity<Void> deleteIndexedSource(UUID id) {
         embeddingService.delete(id);
         if (!sourceService.existsById(id)) {
+            log.info("Source with id {} does not exist", id);
             return ResponseEntity.notFound().build();
         }
         Optional<FileSource> fileSource = sourceService.getFileSourceByIdWithTemporary(id);
         if (fileSource.isPresent() && !fileSource.get().isTemporary() && !fileSource.get().getUsedByChats().isEmpty()) {
+            log.info("Source with id {} is used by chats, marking as temporary instead of deleting", id);
             FileSource newFileSource = new FileSource(
                     fileSource.get().getObjectStorageId(),
                     fileSource.get().getFileName(),
@@ -72,6 +76,7 @@ public class SourcesController implements SourcesApiDelegate {
             );
             sourceService.save(newFileSource);
         } else {
+            log.info("Completely deleting source with id {}", id);
             sourceService.deleteSource(id);
             storageService.delete(id);
         }

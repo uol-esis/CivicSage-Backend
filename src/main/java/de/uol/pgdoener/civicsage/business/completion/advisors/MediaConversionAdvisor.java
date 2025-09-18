@@ -118,7 +118,7 @@ public class MediaConversionAdvisor implements BaseAdvisor {
                 .reduce("", (acc, text) -> acc + "\n" + text).trim();
         switch (metadata) {
             case FileMetadata(String fileName) ->
-                    mediaText = "Hier ist der Inhalt der Datei mit dem Namen: '" + fileName + ":\n\n" + mediaText;
+                    mediaText = "Hier ist der Inhalt der Datei mit dem Namen: '" + fileName + "':\n" + mediaText;
             case WebsiteMetadata(String url) -> {
                 String title = documents.getFirst().getMetadata().get("title").toString();
                 if (title != null && !title.isBlank()) {

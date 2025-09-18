@@ -254,21 +254,19 @@ public class ChatService {
     private Media createMedia(Chat chat, UUID fileId, Map<String, MediaConversionAdvisor.MediaMetadata> mediaMetadataMap)
             throws ReadFileException {
         FileSource fileSource = sourceService.getFileSourceByIdWithTemporary(fileId).orElseThrow(() -> new SourceNotFoundException("Could not find file source with ID: " + fileId));
-        if (fileSource.isTemporary()) {
-            Set<UUID> chatsUsingFile = fileSource.getUsedByChats();
-            chatsUsingFile.add(chat.getId());
-            fileSource = new FileSource(
-                    fileSource.getObjectStorageId(),
-                    fileSource.getFileName(),
-                    fileSource.getHash(),
-                    fileSource.getUploadDate(),
-                    fileSource.getModels(),
-                    fileSource.getMetadata(),
-                    fileSource.isTemporary(),
-                    chatsUsingFile
-            );
-            sourceService.save(fileSource);
-        }
+        Set<UUID> chatsUsingFile = new HashSet<>(fileSource.getUsedByChats());
+        chatsUsingFile.add(chat.getId());
+        fileSource = new FileSource(
+                fileSource.getObjectStorageId(),
+                fileSource.getFileName(),
+                fileSource.getHash(),
+                fileSource.getUploadDate(),
+                fileSource.getModels(),
+                fileSource.getMetadata(),
+                fileSource.isTemporary(),
+                chatsUsingFile
+        );
+        sourceService.save(fileSource);
         String fileName = fileSource.getFileName();
         Media media;
         try {
