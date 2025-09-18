@@ -1,5 +1,6 @@
 package de.uol.pgdoener.civicsage.business.source;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,6 +26,7 @@ public interface FileSourceRepository
 
     Optional<FileSource> getFileSourceByHash(String hash);
 
+    @Query("SELECT f FROM FileSource f WHERE f.uploadDate < :threshold AND f.temporary = true AND f.usedByChats is empty")
     Collection<FileSource> getFileSourcesByUploadDateBeforeAndTemporaryIsTrueAndUsedByChatsIsEmpty(OffsetDateTime threshold);
 
 }
